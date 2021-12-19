@@ -21,4 +21,19 @@ public class PolygonVertex : MonoBehaviour
     {
         
     }
+
+    public float Distance(Vector3 to)
+    {
+        return Vector3.Distance(transform.position, to);
+    }
+
+    public void SetScale(float? size)
+    {
+        transform.localScale = new Vector3(size.GetValueOrDefault(30), size.GetValueOrDefault(30), 1);
+    }
+
+    public void SetColor(Color? color)
+    {
+        GetComponent<SpriteRenderer>().color = color.GetValueOrDefault(Color.black);
+    }
 }

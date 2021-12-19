@@ -6,8 +6,6 @@ using UnityEngine.UI;
 public class GameEventController : MonoBehaviour
 {
 
-   
-
     public List<GameObject> vertexList;
     public List<Edge> edgeList = new List<Edge>();
     public GameObject vertex;
@@ -16,51 +14,61 @@ public class GameEventController : MonoBehaviour
     public float width;
     public Color color = Color.red;
 
-
     private bool polygonStarted = false;
     private LineRenderer polygonLine;
     private GameObject currVertex;
     private GameObject firstVertex;
 
-    public void OnClick()
+    public void OnClick(PolygonVertex? snapToVertex)
     {
-        var mousePos = Input.mousePosition;
+        var mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 10; // select distance = 10 units from the camera
-        var instPos = mainCam.ScreenToWorldPoint(mousePos);
 
         if (!polygonStarted){
             polygonStarted = true;
-            firstVertex = Instantiate(vertex, instPos, Quaternion.identity); // saving the first vertex as a GameObject
+            firstVertex = Instantiate(vertex, mousePos, Quaternion.identity); // saving the first vertex as a GameObject
+
             vertexList.Add(firstVertex);
             polygonLine.enabled = true;
             polygonLine.positionCount = 2;
-            polygonLine.SetPosition(0, instPos);
-            polygonLine.SetPosition(1, instPos);
+            polygonLine.SetPosition(0, mousePos);
+            polygonLine.SetPosition(1, mousePos);
 
+            return;
         }
-        else
-        {
-            if (CheckNotIntersect(instPos)){
 
-                polygonLine.SetPosition(polygonLine.positionCount - 1, instPos); // fix location of previous line
+        if (CheckNotIntersect(mousePos)){
+            Edge newEdge;
+            if(snapToVertex) {
+                // Snap to the given vertex.
+                polygonLine.SetPosition(polygonLine.positionCount - 1, snapToVertex.transform.position); // fix location of previous line
                 polygonLine.positionCount++;
-                polygonLine.SetPosition(polygonLine.positionCount - 1, instPos); // start next line segment
-                // create new vertex
-                currVertex = Instantiate(vertex, instPos, Quaternion.identity);
-                vertexList.Add(currVertex);
-                // create new edge
-                Edge createdEdge = new Edge(vertexList[vertexList.Count -2], vertexList[vertexList.Count - 1]);
-                edgeList.Add(createdEdge);
+                polygonLine.SetPosition(polygonLine.positionCount - 1, snapToVertex.transform.position); 
+                newEdge = new Edge(vertexList[vertexList.Count - 1], snapToVertex.gameObject);
+                edgeList.Add(newEdge);
                 // create references in vertices to edge
-                vertexList[vertexList.Count - 2].GetComponent<PolygonVertex>().nextEdge = createdEdge;
-                vertexList[vertexList.Count - 1].GetComponent<PolygonVertex>().prevEdge = createdEdge;
+                vertexList[vertexList.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
+                snapToVertex.prevEdge = newEdge;
 
+                // @TODO manage some sort of game state, like polygonDrawn = true
+                return;
             }
-            else
-            {
-                Debug.Log("Not Possible!");
-            }
+            polygonLine.SetPosition(polygonLine.positionCount - 1, mousePos); // fix location of previous line
+            polygonLine.positionCount++;
+            polygonLine.SetPosition(polygonLine.positionCount - 1, mousePos); // start next line segment
+            // create new vertex
+            currVertex = Instantiate(vertex, mousePos, Quaternion.identity);
+            vertexList.Add(currVertex);
+            // create new edge
+            newEdge = new Edge(vertexList[vertexList.Count -2], vertexList[vertexList.Count - 1]);
+            edgeList.Add(newEdge);
+            // create references in vertices to edge
+            vertexList[vertexList.Count - 2].GetComponent<PolygonVertex>().nextEdge = newEdge;
+            vertexList[vertexList.Count - 1].GetComponent<PolygonVertex>().prevEdge = newEdge;
+            return;
         }
+
+        Debug.Log("Not Possible!");
     }
 
 
@@ -76,8 +84,9 @@ public class GameEventController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        PolygonVertex snapToVertex = vertexList.Count > 0 ? isCloseToVertex(vertexList[0], 200f) : null;
         if (Input.GetButtonDown("Fire1")){
-            OnClick();
+            OnClick(snapToVertex);
         }
         else if (polygonStarted)
         {
@@ -88,6 +97,27 @@ public class GameEventController : MonoBehaviour
         }
     }
 
+    // Check if the pointer is close to the first vertex in the vertexList. Returns the vertex if true.
+    PolygonVertex isCloseToVertex(GameObject vertex, float range)
+    {
+        var pos = mainCam.ScreenToWorldPoint(Input.mousePosition);
+
+        if(firstVertex) {
+            PolygonVertex _vertex = vertex.GetComponent<PolygonVertex>();
+            if(_vertex.Distance(pos) < range) {
+                _vertex.SetScale(60);
+                _vertex.SetColor(Color.red);
+                _vertex.GetComponent<SpriteRenderer>().color = Color.red;
+                return _vertex;
+            } else {
+                _vertex.SetScale(null);
+                _vertex.SetColor(null);
+                _vertex.GetComponent<SpriteRenderer>().color = Color.black;
+            }
+        }
+
+        return null;
+    }
 
     // checks if the new added edge is legal and does not intersect previous edges
     public bool CheckNotIntersect(Vector3 currPos)
