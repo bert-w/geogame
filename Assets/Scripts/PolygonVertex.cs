@@ -27,6 +27,11 @@ public class PolygonVertex : MonoBehaviour
         
     }
 
+    public Vector2 ToVector()
+    {
+        return new Vector2(x, y);
+    }
+
     public float Distance(Vector3 to)
     {
         return Vector3.Distance(transform.position, to);

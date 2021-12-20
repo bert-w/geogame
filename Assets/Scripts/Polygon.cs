@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Polygon : MonoBehaviour
 {
+    public enum _Direction {CW, CCW}
     public List<GameObject> vertices;
 
     // @TODO i might not even need the edges since the vertices are in order.
@@ -28,10 +29,12 @@ public class Polygon : MonoBehaviour
     // Assign vertex types (split/merge/start/end) to each vertex.
     public void IdentifyVertexTypes()
     {
+        if(Direction == _Direction.CCW) {
+            vertices.Reverse();
+        }
+
         for(var i = 0; i < vertices.Count; i++)
         {
-            // Traversing the vertices list happens in CW order, thus the polygon is to the 
-            // right of the edge.
             PolygonVertex e = vertices[i].GetComponent<PolygonVertex>();
             PolygonVertex prev = i == 0 ? vertices[vertices.Count - 1].GetComponent<PolygonVertex>() : vertices[i - 1].GetComponent<PolygonVertex>();
             PolygonVertex next = i != vertices.Count - 1 ? vertices[i + 1].GetComponent<PolygonVertex>() : vertices[0].GetComponent<PolygonVertex>();
@@ -55,6 +58,21 @@ public class Polygon : MonoBehaviour
                 e.Type = PolygonVertex._Type.Regular;
             }
         }
+    }
+
+    // To determine on which side of the edges the polygon lies, we find out CW or CCW direction using the sum over the edges.
+    public _Direction Direction
+    {
+        get {
+            float sum = 0;
+            for(var i = 0; i < vertices.Count; i++) {
+                Vector2 next = i < vertices.Count - 1 ? vertices[i].GetComponent<PolygonVertex>().ToVector() : new Vector2(0, 0);
+                Vector2 curr = vertices[i].GetComponent<PolygonVertex>().ToVector();
+                sum += (next.x - curr.x)*(next.y + curr.y);
+            }
+            return sum < 0 ? _Direction.CCW : _Direction.CW;
+        }
+
     }
 
     // Triangulate a polygon.
