@@ -1,16 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class Edge
 {
+
     public Vector2 start { get; set; }
     public Vector2 end { get; set; }
+
+    // Helper of this edge which we need for triangulation.
+    public Vector2 helper;
 
     public Edge(GameObject startVertex, GameObject endVertex)
     {
         this.start = startVertex.GetComponent<PolygonVertex>().transform.position;
         this.end = endVertex.GetComponent<PolygonVertex>().transform.position;
+    }
+
+    public Edge(PolygonVertex startVertex, PolygonVertex endVertex)
+    {
+        this.start = new Vector2(startVertex.x, startVertex.y);
+        this.end = new Vector2(endVertex.x, endVertex.y);
     }
 
     public Edge(Vector2 start, Vector2 end)
@@ -62,6 +71,13 @@ public class Edge
         {
             return Mathf.Sqrt(Mathf.Pow(start.x - end.x, 2) + Mathf.Pow(start.y - end.y, 2));
         }
+    }
+
+    // Convert the edge to a vector, with the start at (0, 0).
+    public Vector2 ToVector()
+    {
+        Vector2 _end = end - start;
+        return new Vector2(_end.x, _end.y);
     }
 
     public void DebugDraw()

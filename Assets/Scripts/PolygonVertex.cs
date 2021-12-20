@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PolygonVertex : MonoBehaviour
 {
+    public enum _Type { Start, End, Split, Merge, Regular }
 
     public Edge prevEdge;
     public Edge nextEdge;
@@ -11,6 +12,8 @@ public class PolygonVertex : MonoBehaviour
     public float y;
 
     public Vector3 polarCoordinates;
+
+    public _Type Type { get; set; }
 
     private void Awake()
     {

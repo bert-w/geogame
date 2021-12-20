@@ -309,6 +309,7 @@ GameObject:
   - component: {fileID: 480255766}
   - component: {fileID: 480255765}
   - component: {fileID: 480255767}
+  - component: {fileID: 480255768}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -328,7 +329,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecaa9779e26116f458e995d4a5df5e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vertexList: []
   vertex: {fileID: 6504040600611331191, guid: 021137b0112449f408d6af81ca825296, type: 3}
   mainCam: {fileID: 1953040421}
   width: 10
@@ -363,6 +363,21 @@ MonoBehaviour:
   mouseLight: {fileID: 6504040600611331191, guid: 021137b0112449f408d6af81ca825296,
     type: 3}
   lights: []
+  eventQueue: []
+  visibilityPolygon: []
+--- !u!114 &480255768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 480255764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5747c7a8cdd69fb45ad40c7b59bea46d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vertices: []
 --- !u!1 &1124324949
 GameObject:
   m_ObjectHideFlags: 0
