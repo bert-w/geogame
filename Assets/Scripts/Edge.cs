@@ -10,7 +10,7 @@ public class Edge
     public Edge(GameObject startVertex, GameObject endVertex)
     {
         this.start = startVertex.GetComponent<PolygonVertex>().transform.position;
-        this.start = endVertex.GetComponent<PolygonVertex>().transform.position;
+        this.end = endVertex.GetComponent<PolygonVertex>().transform.position;
     }
 
     public Edge(Vector2 start, Vector2 end)
@@ -41,6 +41,14 @@ public class Edge
         }
         // No intersection found, return null.
         return null;
+    }
+
+    public float Length
+    {
+        get
+        {
+            return Mathf.Sqrt(Mathf.Pow(start.x - end.x, 2) + Mathf.Pow(start.y - end.y, 2));
+        }
     }
 }
 
