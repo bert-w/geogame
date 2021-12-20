@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class PlaceLightsController : MonoBehaviour
 {
-    List<GameObject> polygon;
+    List<GameObject> vertexList;
+    List<Edge> edgeList;
 
     public Camera mainCam;
 
@@ -40,13 +41,24 @@ public class PlaceLightsController : MonoBehaviour
 
     void GenerateVisibilityPolygon()
     {
-        Debug.Log("Computing Visbility Polygon");
+        Debug.Log("Computing Visibility Polygon");
 
         Vector3 mPos = GetMousePosition();
 
+        eventQueue = GenerateEventQueue(mPos);
+
+        for(var i = 0; i < eventQueue.Count; i++) {
+            PolygonVertex vertex = eventQueue[i].GetComponent<PolygonVertex>();
+
+        }
+    }
+
+    // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
+    List<GameObject> GenerateEventQueue(Vector3 mPos)
+    {
         // Convert the list of vertices to polar coordinates so we can create an event queue for the radial sweep.
-        for(var i = 0; i < polygon.Count; i++) {
-            PolygonVertex vertex = polygon[i].GetComponent<PolygonVertex>();
+        for(var i = 0; i < vertexList.Count; i++) {
+            PolygonVertex vertex = vertexList[i].GetComponent<PolygonVertex>();
 
             // Set coordinates relative to the current mouse position.
             Vector3 vPos = mPos - vertex.transform.position;
@@ -65,12 +77,13 @@ public class PlaceLightsController : MonoBehaviour
                 tangent += 2 * Mathf.PI;
             }
 
+            // Assign polar coordinates to the vertex object.
             vertex.polarCoordinates = new Vector3(hypothenuse, tangent);
 
         }
 
         // Sort by y (polar) coordinate.
-        eventQueue = polygon.OrderBy(v => v.GetComponent<PolygonVertex>().polarCoordinates.y).ToList();
+        return vertexList.OrderBy(v => v.GetComponent<PolygonVertex>().polarCoordinates.y).ToList();
     }
 
     Vector3 GetMousePosition()
@@ -80,8 +93,9 @@ public class PlaceLightsController : MonoBehaviour
         return mPos;
     }
 
-    public void SetPolygon(List<GameObject> list)
+    public void SetValues(List<GameObject> vertices, List<Edge> edges)
     {
-        polygon = list;
+        vertexList = vertices;
+        edgeList = edges;
     }
 }

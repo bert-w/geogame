@@ -53,7 +53,8 @@ public class GameEventController : MonoBehaviour
                 snapToVertex.prevEdge = newEdge;
 
                 // Pass current vertexlist to the placeLightsController and activate it.
-                placeLightsController.SetPolygon(vertexList);
+                // @TODO the edgeList probably needs to become part of a new Polygon object, together with vertexList.
+                placeLightsController.SetValues(vertexList, edgeList);
                 firstVertex.GetComponent<PolygonVertex>().SetColor(null);
                 firstVertex.GetComponent<PolygonVertex>().SetScale(null);
                 placeLightsController.enabled = true;
