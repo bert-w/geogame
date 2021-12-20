@@ -19,10 +19,11 @@ public class Edge
         this.end = end;
     }
 
-    // Determine whether this edge crosses the given one. If it does, the intersection point is returned.
-    public Vector2? Crosses(Edge edge)
+    // Determine edge crossings. Note that this function needs to be called twice (once reversed).
+    private Vector2? _Crosses(Edge edge)
     {
         // https://stackoverflow.com/a/563275/1346367
+        // NOTE: there is a shortcoming in the original implementation: both a->b and b->a need to be checked.
         // segment 1 = AB, segment 2 = CD
         // E = B-A = ( Bx-Ax, By-Ay )
         // F = D-C = ( Dx-Cx, Dy-Cy ) 
@@ -43,12 +44,35 @@ public class Edge
         return null;
     }
 
+    // Determine whether this edge crosses the given one. If it does, the intersection point is returned.
+    public Vector2? Crosses(Edge edge)
+    {
+        var a = edge._Crosses(this);
+        var b = _Crosses(edge);
+        if(a.HasValue && b.HasValue) {
+            // Values should be the same so we return a.
+            return a;
+        }
+        return null;
+    }
+
     public float Length
     {
         get
         {
             return Mathf.Sqrt(Mathf.Pow(start.x - end.x, 2) + Mathf.Pow(start.y - end.y, 2));
         }
+    }
+
+    public void DebugDraw()
+    {
+        DebugDraw(Color.red, 1f);
+    }
+
+    public void DebugDraw(Color color, float duration)
+    {
+        Debug.Log("[Edge] " + start + " - " + end);
+        Debug.DrawLine(start, end, color, duration);
     }
 }
 
