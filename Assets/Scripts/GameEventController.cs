@@ -147,10 +147,10 @@ public class GameEventController : MonoBehaviour
         for (int i = 0; i < edgeList.Count; i++)
         {
             var currEdge = edgeList[i];
-            float cx = currEdge.startPointX;
-            float cy = currEdge.startPointY;
-            float dx = currEdge.startPointX;
-            float dy = currEdge.startPointY;
+            float cx = currEdge.start.x;
+            float cy = currEdge.start.y;
+            float dx = currEdge.start.x;
+            float dy = currEdge.start.y;
 
             if (Intersect(ax, ay, bx, by, cx, cy, dx, dy))
             {

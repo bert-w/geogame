@@ -49,7 +49,7 @@ public class PlaceLightsController : MonoBehaviour
 
         for(var i = 0; i < eventQueue.Count; i++) {
             PolygonVertex vertex = eventQueue[i].GetComponent<PolygonVertex>();
-
+            Edge rayCast = new Edge(mPos, vertex.transform.position);
         }
     }
 
