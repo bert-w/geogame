@@ -78,6 +78,7 @@ public class GameEventController : MonoBehaviour
         polygonLine = gameObject.AddComponent<LineRenderer>();
         polygonLine.material.color = color;
         polygonLine.widthMultiplier = width;
+        polygonLine.numCornerVertices = 1;
 
     }
 
