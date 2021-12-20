@@ -68,6 +68,12 @@ public class Polygon : MonoBehaviour
         //
     }
 
+    // Merge a polygon with another one.
+    public Polygon Merge(Polygon p)
+    {
+        throw new System.Exception("Not implemented");
+    }
+
     private List<Polygon> CreateYMonotone()
     {
         return new List<Polygon>();
