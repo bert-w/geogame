@@ -77,8 +77,12 @@ public class GameEventController : MonoBehaviour
             vertexList[vertexList.Count - 1].GetComponent<PolygonVertex>().prevEdge = newEdge;
             return;
         }
+        else
+        {
+            Debug.Log("Not Possible!");
+        }
 
-        Debug.Log("Not Possible!");
+  
     }
 
 
@@ -135,6 +139,28 @@ public class GameEventController : MonoBehaviour
 
     // checks if the new added edge is legal and does not intersect previous edges
     public bool CheckNotIntersect(Vector3 currPos)
+    {
+        if (edgeList.Count == 0)
+            return true;
+
+        Vector2 currPos2 = currPos;
+        Vector2 prevPos = edgeList[edgeList.Count - 1].end;
+
+        Edge tempEdge = new Edge(prevPos, currPos2);
+        for (int i = 0; i < edgeList.Count; i++)
+        {
+            var currEdge = edgeList[i];
+            if (null != currEdge.Crosses(tempEdge))
+            {
+                return false;
+            } 
+        }
+
+        return true;
+    }
+
+
+    public bool CheckNotIntersectOld(Vector3 currPos)
     {
         if (edgeList.Count == 0)
             return true;
