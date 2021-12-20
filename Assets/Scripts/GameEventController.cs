@@ -19,7 +19,9 @@ public class GameEventController : MonoBehaviour
     private GameObject currVertex;
     private GameObject firstVertex;
 
-    public void OnClick(PolygonVertex? snapToVertex)
+    private PlaceLightsController placeLightsController;
+
+    public void OnClick(PolygonVertex snapToVertex)
     {
         var mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 10; // select distance = 10 units from the camera
@@ -27,7 +29,7 @@ public class GameEventController : MonoBehaviour
         if (!polygonStarted){
             polygonStarted = true;
             firstVertex = Instantiate(vertex, mousePos, Quaternion.identity); // saving the first vertex as a GameObject
-
+            firstVertex.name = "Vertex 1";
             vertexList.Add(firstVertex);
             polygonLine.enabled = true;
             polygonLine.positionCount = 2;
@@ -50,7 +52,13 @@ public class GameEventController : MonoBehaviour
                 vertexList[vertexList.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
                 snapToVertex.prevEdge = newEdge;
 
-                // @TODO manage some sort of game state, like polygonDrawn = true
+                // Pass current vertexlist to the placeLightsController and activate it.
+                placeLightsController.SetPolygon(vertexList);
+                firstVertex.GetComponent<PolygonVertex>().SetColor(null);
+                firstVertex.GetComponent<PolygonVertex>().SetScale(null);
+                placeLightsController.enabled = true;
+                // Disable this controller.
+                enabled = false;
                 return;
             }
             polygonLine.SetPosition(polygonLine.positionCount - 1, mousePos); // fix location of previous line
@@ -58,6 +66,7 @@ public class GameEventController : MonoBehaviour
             polygonLine.SetPosition(polygonLine.positionCount - 1, mousePos); // start next line segment
             // create new vertex
             currVertex = Instantiate(vertex, mousePos, Quaternion.identity);
+            currVertex.name = "Vertex " + (vertexList.Count + 1);
             vertexList.Add(currVertex);
             // create new edge
             newEdge = new Edge(vertexList[vertexList.Count -2], vertexList[vertexList.Count - 1]);
@@ -79,7 +88,10 @@ public class GameEventController : MonoBehaviour
         polygonLine.material.color = color;
         polygonLine.widthMultiplier = width;
         polygonLine.numCornerVertices = 1;
+        polygonLine.numCapVertices = 1;
 
+        placeLightsController = gameObject.GetComponent<PlaceLightsController>();
+        placeLightsController.enabled = false;
     }
 
     // Update is called once per frame

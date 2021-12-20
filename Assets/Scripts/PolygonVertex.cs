@@ -10,6 +10,8 @@ public class PolygonVertex : MonoBehaviour
     public float x;
     public float y;
 
+    public Vector3 polarCoordinates;
+
     private void Awake()
     {
         x = transform.position.x;
