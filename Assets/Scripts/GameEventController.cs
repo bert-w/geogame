@@ -85,7 +85,6 @@ public class GameEventController : MonoBehaviour
   
     }
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -147,9 +146,11 @@ public class GameEventController : MonoBehaviour
         Vector2 prevPos = edgeList[edgeList.Count - 1].end;
 
         Edge tempEdge = new Edge(prevPos, currPos2);
+        tempEdge.DebugDraw();
         for (int i = 0; i < edgeList.Count; i++)
         {
             var currEdge = edgeList[i];
+            currEdge.DebugDraw();
             if (null != currEdge.Crosses(tempEdge))
             {
                 return false;

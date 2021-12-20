@@ -16,6 +16,11 @@ public class PlaceLightsController : MonoBehaviour
 
     public List<GameObject> eventQueue;
 
+    public List<Vector3> visibilityPolygon;
+
+    private LineRenderer visibilityPolygonLine;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +32,14 @@ public class PlaceLightsController : MonoBehaviour
         mouseLight = Instantiate(mouseLight);
         mouseLight.name = "Mouse Light";
         mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
+
+        visibilityPolygonLine = new GameObject().AddComponent<LineRenderer>();
+        visibilityPolygonLine.material = new Material(Shader.Find("Sprites/Default"));
+        visibilityPolygonLine.name = "Visibility Polygon";
+        visibilityPolygonLine.material.color = Color.yellow;
+        visibilityPolygonLine.widthMultiplier = 10;
+        visibilityPolygonLine.numCornerVertices = 1;
+        visibilityPolygonLine.numCapVertices = 1;
     }
 
     // Update is called once per frame
@@ -34,9 +47,9 @@ public class PlaceLightsController : MonoBehaviour
     {
         mouseLight.transform.position = GetMousePosition();
 
-        if (Input.GetButtonDown("Fire1")){
+        // if (Input.GetButtonDown("Fire1")){
             GenerateVisibilityPolygon();
-        }
+        // }
     }
 
     void GenerateVisibilityPolygon()
@@ -47,10 +60,31 @@ public class PlaceLightsController : MonoBehaviour
 
         eventQueue = GenerateEventQueue(mPos);
 
+        visibilityPolygon = new List<Vector3>();
+
         for(var i = 0; i < eventQueue.Count; i++) {
             PolygonVertex vertex = eventQueue[i].GetComponent<PolygonVertex>();
             Edge rayCast = new Edge(mPos, vertex.transform.position);
+            Debug.DrawLine(mPos, vertex.transform.position, Color.blue, .1f);
+            float length = rayCast.Length;
+            bool intersected = false;
+            for(var j = 0; j < edgeList.Count; j++) {
+                Vector3? intersection = rayCast.Crosses(edgeList[j]);
+                Debug.DrawLine(edgeList[j].start, edgeList[j].end, Color.red, .1f);
+                if(intersection.HasValue) {
+                    intersected = true;
+                    visibilityPolygon.Add(intersection.Value);
+                    break;
+                }
+            }
+            if(!intersected) {
+                visibilityPolygon.Add(vertex.transform.position);
+            }
         }
+
+        visibilityPolygonLine.SetPositions(visibilityPolygon.ToArray());
+
+        visibilityPolygonLine.positionCount = visibilityPolygon.Count;
     }
 
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
