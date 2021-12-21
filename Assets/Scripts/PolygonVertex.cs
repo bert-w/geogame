@@ -13,10 +13,22 @@ public class PolygonVertex : MonoBehaviour
 
     public Vector3 polarCoordinates;
 
+    [field: SerializeField]
     public _Type Type { get; set; }
+
+    [field: SerializeField]
+    public Edge LeftHelperEdge { get; set; }
+
+    private Color _color;
+
+    private float _scale;
 
     private void Awake()
     {
+        // Set defaults.
+        Color = UnityEngine.Color.black;
+        Scale = 30;
+
         x = transform.position.x;
         y = transform.position.y;
     }
@@ -37,13 +49,23 @@ public class PolygonVertex : MonoBehaviour
         return Vector3.Distance(transform.position, to);
     }
 
-    public void SetScale(float? size)
-    {
-        transform.localScale = new Vector3(size.GetValueOrDefault(30), size.GetValueOrDefault(30), 1);
+    public float? Scale {
+        get {
+            return _scale;
+        }
+        set {
+            transform.localScale = new Vector3(value.GetValueOrDefault(30), value.GetValueOrDefault(30), 1);
+            _scale = value.GetValueOrDefault(30);
+        }
     }
 
-    public void SetColor(Color? color)
-    {
-        GetComponent<SpriteRenderer>().color = color.GetValueOrDefault(Color.black);
+    public Color? Color {
+        get {
+            return _color;
+        }
+        set {
+            GetComponent<SpriteRenderer>().color = value.GetValueOrDefault(UnityEngine.Color.black);
+            _color = value.GetValueOrDefault(UnityEngine.Color.black);
+        }
     }
 }

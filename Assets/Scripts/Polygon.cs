@@ -79,13 +79,18 @@ public class Polygon : MonoBehaviour
             // Assign types to polygon vertices.
             if(e.y > prev.y && e.y > next.y && e.x > prev.x && angle < 180) {
                 e.Type = PolygonVertex._Type.Start;
-            } else if(e.y > prev.y && e.y > next.y && e.x < prev.x && angle < 180) { 
+                e.Color = Color.cyan;
+            } else if(e.y > prev.y && e.y > next.y && e.x < prev.x && angle > 180) { 
                 e.Type = PolygonVertex._Type.Split;
-            } else if(e.y < prev.y && e.y < next.y && e.x < prev.x && angle > 180) {
+                e.Color = Color.red;
+            } else if(e.y < prev.y && e.y < next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.End;
+                e.Color = Color.blue;
             } else if(e.y < prev.y && e.y < next.y && e.x > prev.x && angle > 180) {
                 e.Type = PolygonVertex._Type.Merge;
+                e.Color = Color.yellow;
             } else {
+                e.Color = Color.magenta;
                 e.Type = PolygonVertex._Type.Regular;
             }
         }

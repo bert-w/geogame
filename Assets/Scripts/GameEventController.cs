@@ -50,9 +50,10 @@ public class GameEventController : MonoBehaviour
 
                 // Pass current vertexlist to the placeLightsController and activate it.
                 challengePolygon.edges = edgeList;
+                
                 placeLightsController.SetValues(challengePolygon);
-                snapToVertex.SetColor(null);
-                snapToVertex.SetScale(null);
+                snapToVertex.Color = null;
+                snapToVertex.Scale = null;
                 placeLightsController.enabled = true;
                 // Disable this controller.
                 enabled = false;
@@ -117,18 +118,14 @@ public class GameEventController : MonoBehaviour
     {
         var pos = mainCam.ScreenToWorldPoint(Input.mousePosition);
 
-        if(challengePolygon.vertices.Count > 0) {
-            if(vertex.Distance(pos) < range) {
-                vertex.SetScale(60);
-                vertex.SetColor(Color.red);
-                vertex.GetComponent<SpriteRenderer>().color = Color.red;
-                return vertex;
-            } else {
-                vertex.SetScale(null);
-                vertex.SetColor(null);
-                vertex.GetComponent<SpriteRenderer>().color = Color.black;
-            }
+        if(vertex.Distance(pos) < range) {
+            vertex.Scale = 60;
+            vertex.Color = Color.blue;
+            return vertex;
         }
+
+        vertex.Scale = null;
+        vertex.Color = null;
 
         return null;
     }
