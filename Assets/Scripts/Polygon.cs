@@ -105,8 +105,9 @@ public class Polygon : MonoBehaviour
     // Complexity: 
     private void AssignVertexLeftEdges()
     {
-        // Assign left edges to vertices, and helpers to edges
-        // Use MakeMonotone algorithm from book
+        // Assign left edges to vertices, and helpers to edges.
+        // Use MakeMonotone algorithm from book (p.53).
+        // https://stackoverflow.com/questions/64908672/sweep-line-polygon-triangulation-how-to-find-edge-left-to-current-vertex
     }
 
     // To determine on which side of the edges the polygon lies, we find out CW or CCW direction using the sum over the edges.
@@ -146,6 +147,8 @@ public class Polygon : MonoBehaviour
                 triangulation.Add(edge);
             }
         }
+
+        TriangulateYMonotone();
     }
 
     private void TriangulateYMonotone()
