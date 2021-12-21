@@ -8,7 +8,8 @@ public class Edge
     public Vector2 end { get; set; }
 
     // Helper of this edge which we need for triangulation.
-    public Vector2 helper;
+    [field: SerializeField]
+    public PolygonVertex HelperVertex { get; set; }
 
     public Edge(GameObject startVertex, GameObject endVertex)
     {

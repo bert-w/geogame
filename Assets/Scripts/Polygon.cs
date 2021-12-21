@@ -1,16 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Polygon : MonoBehaviour
 {
     public enum _Direction {None, CW, CCW}
-    public List<PolygonVertex> vertices;
+
+    [field: SerializeField]
+    public List<PolygonVertex> vertices { get; set; }
+
 
     public GameObject polygonVertex;
 
     // @TODO i might not even need the edges since the vertices are in order.
-    public List<Edge> edges;
+    [field: SerializeField]
+    public List<Edge> edges { get; set; }
+
+    [field: SerializeField]
+    public List<Edge> triangulation { get; set; }
 
     [SerializeField]
     private _Direction _direction = _Direction.None;
@@ -58,12 +66,9 @@ public class Polygon : MonoBehaviour
     }
 
     // Assign vertex types (split/merge/start/end) to each vertex.
-    public void IdentifyVertexTypes()
+    // Complexity: n
+    private void AssignVertexTypes()
     {
-        if(Direction == _Direction.CCW) {
-            vertices.Reverse();
-        }
-
         for(var i = 0; i < vertices.Count; i++)
         {
             PolygonVertex e = vertices[i];
@@ -96,6 +101,14 @@ public class Polygon : MonoBehaviour
         }
     }
 
+    // Assign various helper pointers to edges and vertices.
+    // Complexity: 
+    private void AssignVertexLeftEdges()
+    {
+        // Assign left edges to vertices, and helpers to edges
+        // Use MakeMonotone algorithm from book
+    }
+
     // To determine on which side of the edges the polygon lies, we find out CW or CCW direction using the sum over the edges.
     public _Direction Direction
     {
@@ -110,14 +123,29 @@ public class Polygon : MonoBehaviour
             return _direction;
         }
         set {
-            //
+            // Not settable.
         }
     }
 
     // Triangulate a polygon.
     public void Triangulate()
     {
-        //
+        if(Direction == _Direction.CCW) {
+            vertices.Reverse();
+        }
+
+        AssignVertexTypes();
+        AssignVertexLeftEdges();
+
+        foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
+        {
+            if(vertex.Type == PolygonVertex._Type.Split) {
+                // Create new edge between this vertex and the helper of its left edge.
+                Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
+                edge.DebugDraw(Color.magenta, 100f);
+                triangulation.Add(edge);
+            }
+        }
     }
 
     private void TriangulateYMonotone()
