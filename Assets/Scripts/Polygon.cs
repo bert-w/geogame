@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class Polygon : MonoBehaviour
 {
-    public enum _Direction {CW, CCW}
+    public enum _Direction {None, CW, CCW}
     public List<GameObject> vertices;
 
     // @TODO i might not even need the edges since the vertices are in order.
     public List<Edge> edges;
+
+    [SerializeField]
+    private _Direction _direction = _Direction.None;
 
     private void Awake()
     {
@@ -18,6 +21,8 @@ public class Polygon : MonoBehaviour
     public void Add(GameObject v)
     {
         vertices.Add(v);
+        // Recalculate direction.
+        _direction = Direction;
     }
 
     // Update is called once per frame
@@ -66,13 +71,16 @@ public class Polygon : MonoBehaviour
         get {
             float sum = 0;
             for(var i = 0; i < vertices.Count; i++) {
-                Vector2 next = i < vertices.Count - 1 ? vertices[i].GetComponent<PolygonVertex>().ToVector() : new Vector2(0, 0);
+                Vector2 next = i < vertices.Count - 1 ? vertices[i + 1].GetComponent<PolygonVertex>().ToVector() : new Vector2(0, 0);
                 Vector2 curr = vertices[i].GetComponent<PolygonVertex>().ToVector();
                 sum += (next.x - curr.x)*(next.y + curr.y);
             }
-            return sum < 0 ? _Direction.CCW : _Direction.CW;
+            _direction = sum < 0 ? _Direction.CCW : _Direction.CW;
+            return _direction;
         }
-
+        set {
+            //
+        }
     }
 
     // Triangulate a polygon.
