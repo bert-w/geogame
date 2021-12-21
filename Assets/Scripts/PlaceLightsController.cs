@@ -5,37 +5,32 @@ using UnityEngine;
 
 public class PlaceLightsController : MonoBehaviour
 {
-    List<GameObject> vertexList;
-    List<Edge> edgeList;
-
     public Camera mainCam;
 
     public GameObject mouseLight;
 
     public List<PolygonVertex> lights;
 
-    public List<GameObject> eventQueue;
+    private List<PolygonVertex> eventQueue;
 
-    public List<Vector3> visibilityPolygon;
+    public Polygon visibilityPolygon;
+
+    private Polygon challengePolygon;
 
     private LineRenderer visibilityPolygonLine;
 
 
     // Start is called before the first frame update
     void Start()
-    {
-       
-    }
-
-    void OnEnable()
-    {
+    {    
         mouseLight = Instantiate(mouseLight);
         mouseLight.name = "Mouse Light";
         mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
 
+        visibilityPolygon = Instantiate(new GameObject().AddComponent<Polygon>());
         visibilityPolygonLine = new GameObject().AddComponent<LineRenderer>();
         visibilityPolygonLine.material = new Material(Shader.Find("Sprites/Default"));
-        visibilityPolygonLine.name = "Visibility Polygon";
+        visibilityPolygonLine.name = "Visibility Polygon Line";
         visibilityPolygonLine.material.color = Color.yellow;
         visibilityPolygonLine.widthMultiplier = 10;
         visibilityPolygonLine.numCornerVertices = 1;
@@ -54,13 +49,13 @@ public class PlaceLightsController : MonoBehaviour
 
     void GenerateVisibilityPolygon()
     {
-        Debug.Log("Computing Visibility Polygon");
-
         Vector3 mPos = GetMousePosition();
 
         eventQueue = GenerateEventQueue(mPos);
 
-        visibilityPolygon = new List<Vector3>();
+        List<Edge> edges = challengePolygon.edges;
+
+        visibilityPolygon.empty();
 
         for(var i = 0; i < eventQueue.Count; i++) {
             PolygonVertex vertex = eventQueue[i].GetComponent<PolygonVertex>();
@@ -68,31 +63,36 @@ public class PlaceLightsController : MonoBehaviour
             Debug.DrawLine(mPos, vertex.transform.position, Color.blue, .1f);
             float length = rayCast.Length;
             bool intersected = false;
-            for(var j = 0; j < edgeList.Count; j++) {
-                Vector3? intersection = rayCast.Crosses(edgeList[j]);
-                Debug.DrawLine(edgeList[j].start, edgeList[j].end, Color.red, .1f);
+            for(var j = 0; j < edges.Count; j++) {
+                Debug.DrawLine(edges[j].start, edges[j].end, Color.red, .1f);
+                Vector3? intersection = rayCast.Crosses(edges[j]);
                 if(intersection.HasValue) {
+                    
                     intersected = true;
                     visibilityPolygon.Add(intersection.Value);
                     break;
                 }
             }
             if(!intersected) {
-                visibilityPolygon.Add(vertex.transform.position);
+                visibilityPolygon.Add(vertex.ToVector());
             }
         }
 
-        visibilityPolygonLine.SetPositions(visibilityPolygon.ToArray());
+        visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v => {
+            return new Vector3(v.x, v.y, 0);
+        }).ToArray());
 
-        visibilityPolygonLine.positionCount = visibilityPolygon.Count;
+        visibilityPolygonLine.positionCount = visibilityPolygon.vertices.Count;
+
+        visibilityPolygon.empty();
     }
 
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
-    List<GameObject> GenerateEventQueue(Vector3 mPos)
+    List<PolygonVertex> GenerateEventQueue(Vector3 mPos)
     {
         // Convert the list of vertices to polar coordinates so we can create an event queue for the radial sweep.
-        for(var i = 0; i < vertexList.Count; i++) {
-            PolygonVertex vertex = vertexList[i].GetComponent<PolygonVertex>();
+        for(var i = 0; i < challengePolygon.vertices.Count; i++) {
+            PolygonVertex vertex = challengePolygon.vertices[i];
 
             // Set coordinates relative to the current mouse position.
             Vector3 vPos = mPos - vertex.transform.position;
@@ -117,7 +117,7 @@ public class PlaceLightsController : MonoBehaviour
         }
 
         // Sort by y (polar) coordinate.
-        return vertexList.OrderBy(v => v.GetComponent<PolygonVertex>().polarCoordinates.y).ToList();
+        return challengePolygon.vertices.OrderBy(v => v.polarCoordinates.y).ToList();
     }
 
     Vector3 GetMousePosition()
@@ -127,9 +127,8 @@ public class PlaceLightsController : MonoBehaviour
         return mPos;
     }
 
-    public void SetValues(List<GameObject> vertices, List<Edge> edges)
+    public void SetValues(Polygon polygon)
     {
-        vertexList = vertices;
-        edgeList = edges;
+        challengePolygon = polygon;
     }
 }
