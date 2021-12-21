@@ -309,7 +309,6 @@ GameObject:
   - component: {fileID: 480255766}
   - component: {fileID: 480255765}
   - component: {fileID: 480255767}
-  - component: {fileID: 480255768}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -364,23 +363,7 @@ MonoBehaviour:
   mouseLight: {fileID: 6504040600611331191, guid: 858431fab454ef54c91c493808641a2e,
     type: 3}
   lights: []
-  visibilityPolygon: {fileID: 480255768}
---- !u!114 &480255768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 480255764}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5747c7a8cdd69fb45ad40c7b59bea46d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  vertices: []
-  polygonVertex: {fileID: 6504040600611331191, guid: 021137b0112449f408d6af81ca825296,
-    type: 3}
-  _direction: 0
+  visibilityPolygon: {fileID: 0}
 --- !u!1 &1124324949
 GameObject:
   m_ObjectHideFlags: 0
