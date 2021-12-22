@@ -7,11 +7,12 @@ public class GameEventController : MonoBehaviour
 {
     public List<Edge> edgeList = new List<Edge>();
     public Camera mainCam;
-    public float width;
-    public Color color = Color.red;
+    public float LineWidth;
+
+    public Color LineColor = Color.black;
 
     private bool polygonStarted = false;
-    private LineRenderer polygonLine;
+    public LineRenderer polygonLine;
 
     public Polygon challengePolygon;
 
@@ -78,25 +79,18 @@ public class GameEventController : MonoBehaviour
         {
             Debug.Log("Not Possible!");
         }
-
-  
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        challengePolygon = Instantiate(new GameObject().AddComponent<Polygon>());
+        challengePolygon = new GameObject().AddComponent<Polygon>();
         challengePolygon.name = "Challenge Polygon";
         challengePolygon.transform.SetParent(transform);
 
-        polygonLine = gameObject.AddComponent<LineRenderer>();
-        polygonLine.material.color = color;
-        polygonLine.widthMultiplier = width;
-        polygonLine.numCornerVertices = 1;
-        polygonLine.numCapVertices = 1;
-
-        placeLightsController = gameObject.GetComponent<PlaceLightsController>();
-        placeLightsController.enabled = false;
+        polygonLine = GetComponent<LineRenderer>();
+        polygonLine.material.color = LineColor;
+        polygonLine.widthMultiplier = LineWidth;
     }
 
     // Update is called once per frame

@@ -8,18 +8,17 @@ public class Polygon : MonoBehaviour
     public enum _Direction {None, CW, CCW}
 
     [field: SerializeField]
-    public List<PolygonVertex> vertices { get; set; }
+    public List<PolygonVertex> vertices { get; set; } = new List<PolygonVertex>();
 
-
-    public GameObject polygonVertex;
+    private GameObject polygonVertex;
 
     // @TODO i might not even need the edges since the vertices are in order.
     // Edges might be nice for polygon merging
     [field: SerializeField]
-    public List<Edge> edges { get; set; }
+    public List<Edge> edges { get; set; } = new List<Edge>();
 
     [field: SerializeField]
-    public List<Edge> triangulation { get; set; }
+    public List<Edge> triangulation { get; set; } = new List<Edge>();
 
     // Determines if the polygon has been completed.
     [SerializeField]
@@ -29,10 +28,23 @@ public class Polygon : MonoBehaviour
     [SerializeField]
     private _Direction _direction = _Direction.None;
 
+    [SerializeField]
+    private bool showColors = false;
+
     void Start()
     {
-        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject))) as GameObject;
-        polygonVertex.transform.SetParent(transform);
+        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+    }
+    
+    // Update is called once per frame
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.T)) {
+            showColors = !showColors;
+            foreach(PolygonVertex vertex in vertices) {
+                vertex.ShowColors(showColors);
+            }
+        }
     }
 
     private void Awake()
@@ -50,10 +62,8 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(Vector2 vector)
     {
-        PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity).GetComponent<PolygonVertex>();
+        PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
         vertex.gameObject.name = "Polygon Vertex " + vertices.Count;
-        // Assign parent as this object.
-        vertex.transform.SetParent(transform);
         return Add(vertex);
     }
 
@@ -77,12 +87,6 @@ public class Polygon : MonoBehaviour
                 AssignVertexTypes();
             }
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     // Assign vertex types (split/merge/start/end) to each vertex.

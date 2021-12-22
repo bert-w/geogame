@@ -14,6 +14,10 @@ public class PlaceLightsController : MonoBehaviour
     private List<PolygonVertex> eventQueue;
 
     public Polygon visibilityPolygon;
+    
+    public float LineWidth;
+
+    public Color LineColor = Color.black;
 
     // List with "confirmed" visibility polygons
     public List<Polygon> visibilityPolygonList; 
@@ -28,18 +32,16 @@ public class PlaceLightsController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {    
-        mouseLight = Instantiate(mouseLight);
+        mouseLight = Instantiate(mouseLight, transform);
         mouseLight.name = "Mouse Light";
         mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
 
-        visibilityPolygon = Instantiate(new GameObject().AddComponent<Polygon>());
-        visibilityPolygonLine = new GameObject().AddComponent<LineRenderer>();
-        visibilityPolygonLine.material = new Material(Shader.Find("Sprites/Default"));
-        visibilityPolygonLine.name = "Visibility Polygon Line";
-        visibilityPolygonLine.material.color = Color.yellow;
-        visibilityPolygonLine.widthMultiplier = 10;
-        visibilityPolygonLine.numCornerVertices = 1;
-        visibilityPolygonLine.numCapVertices = 1;
+        visibilityPolygon = new GameObject().AddComponent<Polygon>();
+        visibilityPolygon.name = "Visibility Polygon";
+        visibilityPolygon.transform.SetParent(transform);
+        visibilityPolygonLine = GetComponent<LineRenderer>();
+        visibilityPolygonLine.material.color = LineColor;
+        visibilityPolygonLine.widthMultiplier = LineWidth;
     }
 
     // Update is called once per frame

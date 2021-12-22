@@ -36,8 +36,6 @@ public class PolygonVertex : MonoBehaviour
 
     private float _scale;
 
-    private bool showColors;
-
     private void Awake()
     {
         // Set defaults.
@@ -51,11 +49,12 @@ public class PolygonVertex : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.T)) {
-            showColors = !showColors;
-        }
+        
+    }
 
-        Color = (Color) (showColors ? typeColors[Type] : defaults["Color"]);
+    public void ShowColors(bool value)
+    {
+        Color = (Color) (value ? typeColors[Type] : defaults["Color"]);
     }
 
     public Vector2 ToVector()
