@@ -36,7 +36,8 @@ public class GameEventController : MonoBehaviour
             return;
         }
 
-        if (CheckNotIntersect(mousePos)){
+        Edge intersectedEdge = IntersectsPolygon(mousePos);
+        if (intersectedEdge == null){
             Edge newEdge;
             if(snapToVertex) {
                 // Snap to the given vertex.
@@ -126,28 +127,27 @@ public class GameEventController : MonoBehaviour
         return null;
     }
 
-    // checks if the new added edge is legal and does not intersect previous edges
-    public bool CheckNotIntersect(Vector3 currPos)
+    // checks if the new added edge is legal and does not intersect previous edges.
+    public Edge IntersectsPolygon(Vector3 currPos)
     {
         if (edgeList.Count == 0)
-            return true;
+            return null;
 
         Vector2 currPos2 = currPos;
         Vector2 prevPos = edgeList[edgeList.Count - 1].end;
 
         Edge tempEdge = new Edge(prevPos, currPos2);
         tempEdge.DebugDraw();
-        for (int i = 0; i < edgeList.Count; i++)
+        foreach(Edge edge in edgeList)
         {
-            var currEdge = edgeList[i];
-            currEdge.DebugDraw();
-            if (null != currEdge.Crosses(tempEdge))
+            edge.DebugDraw();
+            if (edge.Crosses(tempEdge).HasValue)
             {
-                return false;
+                return edge;
             } 
         }
 
-        return true;
+        return null;
     }
 
 

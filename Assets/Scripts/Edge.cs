@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class Edge : Object
+public class Edge
 {
 
     public Vector2 start { get; set; }
