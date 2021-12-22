@@ -48,12 +48,14 @@ public class GameEventController : MonoBehaviour
                 p.vertices[p.vertices.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
                 snapToVertex.prevEdge = newEdge;
 
-                // Pass current vertexlist to the placeLightsController and activate it.
-                challengePolygon.edges = edgeList;
-                
-                placeLightsController.SetValues(challengePolygon);
                 snapToVertex.Color = null;
                 snapToVertex.Scale = null;
+
+                challengePolygon.edges = edgeList;
+                challengePolygon.Completed = true;
+                
+                // Pass current vertexlist to the placeLightsController and activate it.
+                placeLightsController.SetValues(challengePolygon);
                 placeLightsController.enabled = true;
                 // Disable this controller.
                 enabled = false;

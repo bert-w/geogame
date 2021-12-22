@@ -20,6 +20,11 @@ public class Polygon : MonoBehaviour
     [field: SerializeField]
     public List<Edge> triangulation { get; set; }
 
+    // Determines if the polygon has been completed.
+    [SerializeField]
+    private bool _completed = false;
+
+    // The direction (CW/CCW) of the vertices to determine the inner polygon.
     [SerializeField]
     private _Direction _direction = _Direction.None;
 
@@ -57,6 +62,20 @@ public class Polygon : MonoBehaviour
             Destroy(vertices[i].gameObject);
         }
         vertices.Clear();
+    }
+
+    
+    public bool Completed {
+        get {
+            return _completed;
+        }
+        set {
+            _completed = value;
+            if(value) {
+                // When completed, calculate the vertex types.
+                AssignVertexTypes();
+            }
+        }
     }
 
     // Update is called once per frame
