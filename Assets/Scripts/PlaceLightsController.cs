@@ -15,6 +15,11 @@ public class PlaceLightsController : MonoBehaviour
 
     public Polygon visibilityPolygon;
 
+    // List with "confirmed" visibility polygons
+    public List<Polygon> visibilityPolygonList; 
+    // List with polygons to visualize, I.e. while still moving the light
+    public List<Polygon> drawVisibilityPolygonList; 
+
     private Polygon challengePolygon;
 
     private LineRenderer visibilityPolygonLine;
@@ -130,5 +135,74 @@ public class PlaceLightsController : MonoBehaviour
     public void SetValues(Polygon polygon)
     {
         challengePolygon = polygon;
+    }
+
+    // merges currently existing visibility polygons with the latest polygon
+    // can be used both for updating the polygons to be drawn and 
+    // placing a new light
+    public void MergeVisibilityPolygons(List<Polygon> visibilityPolygonList, Polygon newVisibility)
+    {
+
+    }
+
+
+    // calculates the intersections between 2 visibility polygons
+    // places new vertices on segments with intersections
+    // we naively check intersections between each segment
+    // since segments might overlap, we need special cases for overlapiing segments
+    // returns a list with vertices and which edges from different polygons they are linked to
+    // @TODO implement as sweepline?
+    // @TODO move part of the code to edge class?
+    public List<(PolygonVertex, Edge)> CalculateIntersections(Polygon polygon1, Polygon polygon2)
+    {
+        List <(PolygonVertex, Edge)> newLinks = new List<(PolygonVertex, Edge)>();
+
+        for (int i = 0; i < polygon1.edges.Count; i++)
+        {
+            Edge edge1 = polygon1.edges[i];
+            for (int j = 0; j < polygon2.edges.Count; j++)
+            {
+                Edge edge2 = polygon2.edges[j];
+
+                // Case 1: both edges are the same edge
+                if (edge1.IsEqual(edge2))
+                {
+                    // if the edges are "reversed"
+                    if (edge1.IsReversed(edge2)){
+                        // start vertex of edge 1 is end vertex of edge 2
+                        newLinks.Add((edge1.startVertex, edge2));
+                        newLinks.Add((edge1.startVertex, edge2.endVertex.nextEdge));
+                        newLinks.Add((edge1.endVertex, edge2));
+                        newLinks.Add((edge1.endVertex, edge2.startVertex.prevEdge));
+
+                        newLinks.Add((edge2.startVertex, edge1));
+                        newLinks.Add((edge2.startVertex, edge1.endVertex.nextEdge));
+                        newLinks.Add((edge2.endVertex, edge1));
+                        newLinks.Add((edge2.endVertex, edge1.startVertex.prevEdge));
+
+                    }
+                    // otherwise
+                    else
+                    {
+                        newLinks.Add((edge1.startVertex, edge2));
+                        newLinks.Add((edge1.startVertex, edge2.startVertex.prevEdge));
+                        newLinks.Add((edge1.endVertex, edge2));
+                        newLinks.Add((edge1.endVertex, edge2.endVertex.nextEdge));
+
+                        newLinks.Add((edge2.startVertex, edge1));
+                        newLinks.Add((edge2.startVertex, edge1.startVertex.prevEdge));
+                        newLinks.Add((edge2.endVertex, edge1));
+                        newLinks.Add((edge2.endVertex, edge1.endVertex.prevEdge));
+
+                    }
+                }
+
+                // Case 2: Edges overlap
+
+            }
+        }
+
+        return newLinks;
+
     }
 }

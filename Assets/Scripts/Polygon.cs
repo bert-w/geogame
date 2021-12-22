@@ -14,6 +14,7 @@ public class Polygon : MonoBehaviour
     public GameObject polygonVertex;
 
     // @TODO i might not even need the edges since the vertices are in order.
+    // Edges might be nice for polygon merging
     [field: SerializeField]
     public List<Edge> edges { get; set; }
 
