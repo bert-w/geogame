@@ -37,7 +37,9 @@ public class GameEventController : MonoBehaviour
         }
 
         Edge intersectedEdge = IntersectsPolygon(mousePos);
-        if (intersectedEdge == null){
+        // Check if no edges are intersected and if there is, then we check if this is the snapvertex. This
+        // allows us to snap to the snapvertex even if we cross an edge while near it.
+        if (intersectedEdge == null || (snapToVertex && intersectedEdge.start.Equals(snapToVertex.ToVector()))) {
             Edge newEdge;
             if(snapToVertex) {
                 // Snap to the given vertex.
