@@ -84,18 +84,13 @@ public class Polygon : MonoBehaviour
             // Assign types to polygon vertices.
             if(e.y > prev.y && e.y > next.y && e.x > prev.x && angle < 180) {
                 e.Type = PolygonVertex._Type.Start;
-                e.Color = Color.cyan;
             } else if(e.y > prev.y && e.y > next.y && e.x < prev.x && angle > 180) { 
                 e.Type = PolygonVertex._Type.Split;
-                e.Color = Color.red;
             } else if(e.y < prev.y && e.y < next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.End;
-                e.Color = Color.blue;
             } else if(e.y < prev.y && e.y < next.y && e.x > prev.x && angle > 180) {
                 e.Type = PolygonVertex._Type.Merge;
-                e.Color = Color.yellow;
             } else {
-                e.Color = Color.magenta;
                 e.Type = PolygonVertex._Type.Regular;
             }
         }
@@ -138,15 +133,15 @@ public class Polygon : MonoBehaviour
         AssignVertexTypes();
         AssignVertexLeftEdges();
 
-        foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
-        {
-            if(vertex.Type == PolygonVertex._Type.Split) {
-                // Create new edge between this vertex and the helper of its left edge.
-                Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
-                edge.DebugDraw(Color.magenta, 100f);
-                triangulation.Add(edge);
-            }
-        }
+        // foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
+        // {
+        //     if(vertex.Type == PolygonVertex._Type.Split) {
+        //         // Create new edge between this vertex and the helper of its left edge.
+        //         Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
+        //         edge.DebugDraw(Color.magenta, 100f);
+        //         triangulation.Add(edge);
+        //     }
+        // }
 
         TriangulateYMonotone();
     }
