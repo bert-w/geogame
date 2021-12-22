@@ -181,4 +181,19 @@ public class Polygon : MonoBehaviour
     {
         return new List<Polygon>();
     }
+
+    public PolygonVertex PolygonYMax()
+    {
+        var maxY = this.vertices[0].y;
+        var maxVertex = this.vertices[0];
+        for (int i = 0; i < this.vertices.Count; i++)
+        {
+            if (vertices[i].y >= maxY)
+            {
+                maxY = vertices[i].y;
+                maxVertex = vertices[i];
+            }
+        }
+        return maxVertex;
+    }
 }

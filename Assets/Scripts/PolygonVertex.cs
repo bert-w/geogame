@@ -89,4 +89,10 @@ public class PolygonVertex : MonoBehaviour
             _color = _value;
         }
     }
+
+    // @TODO check if this is correct
+    public bool IsEqual(PolygonVertex other)
+    {
+        return ((x == other.x) && (y == other.y) && (prevEdge.IsEqual(other.prevEdge)) && (nextEdge.IsEqual(other.nextEdge)));
+    }
 }
