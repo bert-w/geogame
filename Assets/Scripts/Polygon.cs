@@ -106,13 +106,13 @@ public class Polygon : MonoBehaviour
             }
 
             // Assign types to polygon vertices.
-            if(e.y > prev.y && e.y > next.y && e.x > prev.x && angle < 180) {
+            if(e.y > prev.y && e.y > next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.Start;
-            } else if(e.y > prev.y && e.y > next.y && e.x < prev.x && angle > 180) { 
+            } else if(e.y > prev.y && e.y > next.y && angle > 180) { 
                 e.Type = PolygonVertex._Type.Split;
             } else if(e.y < prev.y && e.y < next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.End;
-            } else if(e.y < prev.y && e.y < next.y && e.x > prev.x && angle > 180) {
+            } else if(e.y < prev.y && e.y < next.y && angle > 180) {
                 e.Type = PolygonVertex._Type.Merge;
             } else {
                 e.Type = PolygonVertex._Type.Regular;
