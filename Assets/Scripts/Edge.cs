@@ -120,5 +120,24 @@ public class Edge
     {
         return true;
     }
+
+    public float CalculateXSlope()
+    {
+        float deltaY = end.y - start.y;
+        if(deltaY == 0) {
+            return float.PositiveInfinity;
+        }
+        return (end.x - start.x) / deltaY;
+    }
+
+    // Calculate the x-coordinate intersection for a given y.
+    public float CalculateXIntersection(float y)
+    {
+        float xSlope = CalculateXSlope();
+        if(xSlope == float.PositiveInfinity) {
+            return start.x;
+        }
+        return start.x + (y - start.y) * xSlope;
+    }
 }
 
