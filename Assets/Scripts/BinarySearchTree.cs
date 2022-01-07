@@ -107,6 +107,12 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
 
     public void Delete(TNode data)
     {
+        if (root.Data.Equals(data) && root.Left == null && root.Right == null)
+        {
+            root = null;
+            return;
+        }
+
         TreeNode node = root;
 
         TreeNode z = null;
@@ -114,7 +120,7 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
 
         while (node != null)
         {
-            if (node.Data == data)
+            if (node.Data.Equals(data))
             {
                 z = node;
             }
@@ -132,6 +138,19 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
         if (z == null)
         {
             // The item to delete was not found
+            return;
+        }
+
+        if (z.Left == null && z.Right == null)
+        {
+            if (z.Parent.Left == z)
+            {
+                z.Parent.Left = null;
+            }
+            else
+            {
+                z.Parent.Right = null;
+            }
             return;
         }
 
@@ -177,6 +196,11 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
 
     public TNode FindMin()
     {
+        if (root == null)
+        {
+            return null;
+        }
+
         return FindMinFromNode(root).Data;
     }
 
@@ -232,6 +256,12 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
             if (newNode.Parent == newNode.Parent.Parent.Right)
             {
                 uncle = newNode.Parent.Parent.Left;
+
+                if (uncle == null)
+                {
+                    break;
+                }
+
                 if (uncle.Color == Color.Red)
                 {
                     uncle.Color = Color.Black;
@@ -254,6 +284,11 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
             else
             {
                 uncle = newNode.Parent.Parent.Right;
+
+                if (uncle == null)
+                {
+                    break;
+                }
 
                 if (uncle.Color == Color.Red)
                 {
