@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 public class Event : IComparable
 {
+    public int Id { get; set; }
+
     /// <summary>
     /// The distance from the light to the start vertex
     /// </summary>
@@ -19,12 +21,12 @@ public class Event : IComparable
     /// <summary>
     /// The degrees around the light
     /// </summary>
-    public float Degrees { get; private set; }
+    public float Degrees { get; set; }
 
     /// <summary>
     /// The type of event
     /// </summary>
-    public EventType Type { get; private set; }
+    public EventType Type { get; set; }
 
     /// <summary>
     /// The edge corresponding to the events
@@ -38,6 +40,13 @@ public class Event : IComparable
         Degrees = degrees;
         Edge = edge;
         Type = type;
+    }
+
+    public void SwapDistances()
+    {
+        var oldStartDistance = StartDistance;
+        StartDistance = EndDistance;
+        EndDistance = oldStartDistance;
     }
 
     public int CompareTo(object obj)
