@@ -1,3 +1,4 @@
+using Assets.Scripts.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,9 +55,13 @@ public class PlaceLightsController : MonoBehaviour
         visibilityPolygon.empty();
         
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
+
+        // Goed checken
         foreach (var edge in visibilityPolygonEdges)
         {
+            // Start and end moet van het event worden niet van de edge
             visibilityPolygon.Add(edge.start); 
+            visibilityPolygon.Add(edge.end);
         }
         visibilityPolygon.Add(visibilityPolygonEdges.First().start);
 
@@ -119,54 +124,11 @@ public class PlaceLightsController : MonoBehaviour
         // Find edge with smallest distance
         // set its degrees to to 0
 
-        float minDistance = float.MaxValue;
-        float minDegrees = float.MaxValue;
-        Edge contendors = challengePolygon.edges[0];
-        foreach (var edge in challengePolygon.edges)
-        {
-            var Polar1 = PolarCoordinates(mPos, edge.start);
-            var Polar2 = PolarCoordinates(mPos, edge.end);
+        var tuple = SafeVertexFinder.Find(challengePolygon.edges, mPos);
+        var startVertex = tuple.Item2;
+        var startEdge = tuple.Item1;
 
-            if (Polar1.x == minDistance)
-            {
-                var correctEdge = FindStartIndex(contendors, edge, mPos);
-                if (correctEdge == edge)
-                {
-                    minDistance = Polar1.x;
-                    minDegrees = Polar1.y;
-                }
-
-                break;
-            }
-
-            if (Polar2.x == minDistance)
-            {
-                var correctEdge = FindStartIndex(contendors, edge, mPos);
-                if (correctEdge == edge)
-                {
-                    minDistance = Polar1.x;
-                    minDegrees = Polar1.y;
-                }
-
-                break;
-            }
-
-            if (Polar1.x < minDistance)
-            {
-                minDistance = Polar1.x;
-                minDegrees = Polar1.y;
-                contendors = edge;
-            }
-
-            if (Polar2.x < minDistance)
-            {
-                minDistance = Polar2.x;
-                minDegrees = Polar2.y;
-                contendors = edge;
-            }
-        }
-        
-
+        float minDegrees = PolarCoordinateBuilder.Build(startVertex, mPos).y;
 
         int edgeId = 0;
         foreach (var edge in challengePolygon.edges)
@@ -185,7 +147,7 @@ public class PlaceLightsController : MonoBehaviour
                 degrees2 += 2 * Mathf.PI;
             }
 
-            if (degrees1 < degrees2)
+            if (SafeVertexFinder.IsStartVertex(edge, mPos))
             {
                 var startEvent = new Event(Polar1.x, Polar2.x, degrees1, edge, EventType.Start);
                 unsortedQueue.Add(startEvent);
@@ -209,47 +171,22 @@ public class PlaceLightsController : MonoBehaviour
             edgeId++;
         }
 
-        var sortedQueue = unsortedQueue.OrderBy(queueItem => queueItem.Degrees).ToList();
+        return unsortedQueue.OrderBy(queueItem => queueItem.Degrees).ToList();
+    }
 
-        Event event1 = sortedQueue[0];
-        Event event2 = sortedQueue[1];
-        var edge1Found = false;
-        var edge2Found = false;
-        for (int i = 2; i < sortedQueue.Count; i++)
-        {
-            var eventItem = sortedQueue[i];
-            if (!edge2Found && eventItem.Edge == event1.Edge)
-            {
-                edge1Found = true;
-            }
+    public float PDistance(Vector2 point, Edge edge)
+    {
+        float A = point.x - edge.start.x; // position of point rel one end of line
+        float B = point.y - edge.start.y;
+        float C = edge.end.x - edge.start.x; // vector along line
+        float D = edge.end.y - edge.start.y;
+        float E = -D; // orthogonal vector
+        float F = C;
 
-            if (!edge1Found && eventItem.Edge == event2.Edge)
-            {
-                edge2Found = true;
-            }
+        float dot = A * E + B * F;
+        float len_sq = E * E + F * F;
 
-            if (edge2Found && eventItem.Edge == event1.Edge)
-            {
-                event1.Type = EventType.End;
-                event1.Degrees = Mathf.PI * 2;
-                event1.SwapDistances();
-                eventItem.Type = EventType.Start;
-                eventItem.SwapDistances();
-                break;
-            }
-
-            if (edge1Found && eventItem.Edge == event2.Edge)
-            {
-                event2.Type = EventType.End;
-                event2.Degrees = Mathf.PI * 2;
-                event1.SwapDistances();
-                eventItem.Type = EventType.Start;
-                eventItem.SwapDistances();
-                break;
-            }
-        }
-
-        return sortedQueue.OrderBy(queueItem => queueItem.Degrees).ToList();
+        return (float)Mathf.Abs(dot) / Mathf.Sqrt(len_sq);
     }
 
     private List<Edge> GenerateVisibilityPolygon(Vector3 mPos)
@@ -258,96 +195,30 @@ public class PlaceLightsController : MonoBehaviour
         var queue = GenerateEventQueue(mPos);
         var state = new RedBlackTree<Event>();
 
-        // Find the event with the smallest start start distance
-        //var startIndex = FindStartIndex(queue, mPos);
-        //var startIndex = queue
-        //    .FindIndex(eventItem =>
-        //        eventItem.Type == EventType.Start &&
-        //        // Dit kan nog een conflict zijn als er twee punten zijn met dezelfde start distance
-        //        eventItem.StartDistance == queue.Where(eventItem => eventItem.Type == EventType.Start).Min(eventItem => eventItem.StartDistance));
-        var startIndex = 0;
-
-        // Set initial state
-        polygon.Add(queue[startIndex].Edge);
-        state.Add(queue[startIndex]);
-
-        Debug.Log(startIndex);
-
-        //TODO remove
-        var index = startIndex;
-        var counter = startIndex;
-        do
+        for (int i = 0; i < queue.Count; i+=2)
         {
-            counter++;
-            index = counter % queue.Count;
+            var event1 = queue[i];
+            var event2 = queue[i+1];
 
-            var currentEvent = queue[index];
-            Event nextEvent;
-            if (index + 1 < queue.Count)
+            if (event1.Type == EventType.Start && event2.Type == EventType.Start)
             {
-                nextEvent = queue[index + 1];
+                state.Add(event1);
+                state.Add(event2);
             }
-            else
+            else if (event1.Type == EventType.Start && event2.Type == EventType.Start)
             {
-                nextEvent = queue[1];
+                state.Delete(event1);
+                state.Delete(event2);
             }
-
-            // General possition cases
-            if (currentEvent.Degrees == nextEvent.Degrees)
+            else if (event1.Type == EventType.Start && event2.Type == EventType.End)
             {
-                if (currentEvent.Type == EventType.Start &&
-                    nextEvent.Type == EventType.End)
-                {
-                    // Current event cannot be visible because it is blocked by
-                    // the end vertex of the next event which has the same position
-
-                    // First delete current event from the state
-                    state.Delete(nextEvent);
-
-                    // Add current
-                    state.Add(currentEvent);
-
-                    // Do not submit and skip next iteration by increasing the counter
-                    counter++;
-
-                    // TODO check
-                    var minEvent2 = state.FindMin();
-
-                    if (minEvent2 != null)
-                    {
-                        polygon.Add(minEvent2.Edge);
-                    }
-
-                    continue;
-                } else if (currentEvent.Type == EventType.End &&
-                    nextEvent.Type == EventType.End)
-                {
-                    state.Delete(currentEvent);
-                    state.Delete(nextEvent);
-
-                    // TODO check
-                    var minEvent2 = state.FindMin();
-
-                    if (minEvent2 != null)
-                    {
-                        polygon.Add(minEvent2.Edge);
-                    }
-
-                    continue;
-
-                    // Check for add
-                }
-
-                //TODO current and next are end delete both skip iteration
+                state.Add(event1);
+                state.Delete(event2);
             }
-
-            if (currentEvent.Type == EventType.Start)
+            else if (event1.Type == EventType.End && event2.Type == EventType.Start)
             {
-                state.Add(currentEvent);
-            }
-            else
-            {
-                state.Delete(currentEvent);
+                state.Delete(event1);
+                state.Add(event2);
             }
 
             var minEvent = state.FindMin();
@@ -356,14 +227,8 @@ public class PlaceLightsController : MonoBehaviour
             {
                 polygon.Add(minEvent.Edge);
             }
-            
-
-            // TODO handle special cases with overlapping events
-
         }
-        while (index != startIndex);
 
-        // circle checken
         return polygon.Distinct().ToList();
     }
 
