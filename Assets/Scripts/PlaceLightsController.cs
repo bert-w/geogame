@@ -66,7 +66,7 @@ public class PlaceLightsController : MonoBehaviour
         // Goed checken
         foreach (var edge in visibilityPolygonEdges)
         {
-            // Start and end moet van het event worden niet van de edge
+            // TODO de punten staan in order can visibility dus voor het teken moet je alleen kijken wel punt overlap en op basis daarvan start en end swappen
             visibilityPolygon.Add(edge.start); 
             visibilityPolygon.Add(edge.end);
         }
@@ -119,20 +119,20 @@ public class PlaceLightsController : MonoBehaviour
 
             if (SafeVertexFinder.IsStartVertex(edge, mPos))
             {
-                var startEvent = new Event(Polar1.x, Polar2.x, degrees1, edge, EventType.Start);
+                var startEvent = new Event(mPos, Polar1.x, Polar2.x, degrees1, edge, EventType.Start);
                 unsortedQueue.Add(startEvent);
                 // Since the edges are non crossing we use the start event distance for easy searching in the binary search tree
-                var endEvent = new Event(Polar1.x, Polar2.x, degrees2, edge, EventType.End);
+                var endEvent = new Event(mPos, Polar1.x, Polar2.x, degrees2, edge, EventType.End);
                 startEvent.Id = edgeId;
                 endEvent.Id = edgeId;
                 unsortedQueue.Add(endEvent);
             }
             else
             {
-                var startEvent = new Event(Polar2.x, Polar1.x, degrees2, edge, EventType.Start);
+                var startEvent = new Event(mPos, Polar2.x, Polar1.x, degrees2, edge, EventType.Start);
                 unsortedQueue.Add(startEvent);
                 // Since the edges are non crossing we use the start event distance for easy searching in the binary search tree
-                var endEvent = new Event(Polar2.x, Polar1.x, degrees1, edge, EventType.End);
+                var endEvent = new Event(mPos, Polar2.x, Polar1.x, degrees1, edge, EventType.End);
                 startEvent.Id = edgeId;
                 endEvent.Id = edgeId;
                 unsortedQueue.Add(endEvent);
@@ -177,6 +177,12 @@ public class PlaceLightsController : MonoBehaviour
             }
 
             var minEvent = state.FindMin();
+
+            if (minEvent != null)
+            {
+
+                minEvent.Edge.DebugDraw();
+            }
 
             if (minEvent != null)
             {

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 public class Event : IComparable
 {
+    private readonly Edge rayCast1;
+    private readonly Edge rayCast2;
+
     public int Id { get; set; }
 
     /// <summary>
@@ -33,12 +33,14 @@ public class Event : IComparable
     /// </summary>
     public Edge Edge { get; private set; }
 
-    public Event(float startDistance, float endDistance, float degrees, Edge edge, EventType type)
+    public Event(Vector2 light, float startDistance, float endDistance, float degrees, Edge edge, EventType type)
     {
         EndDistance = endDistance;
         StartDistance = startDistance;
         Degrees = degrees;
         Edge = edge;
+        rayCast1 = new Edge(light, edge.start);
+        rayCast2 = new Edge(light, edge.end);
         Type = type;
     }
 
@@ -54,12 +56,19 @@ public class Event : IComparable
         // Misschien toch ray gebruiken met crossing
         if (obj is Event otherEvent)
         {
-            if (StartDistance == otherEvent.StartDistance)
+            var crossing = rayCast1.Crosses(otherEvent.Edge);
+            if (crossing != null)
             {
-                return EndDistance.CompareTo(otherEvent.EndDistance);
+                return 1;
             }
 
-            return StartDistance.CompareTo(otherEvent.StartDistance);
+            crossing = rayCast2.Crosses(otherEvent.Edge);
+            if (crossing != null)
+            {
+                return 1;
+            }
+
+            return -1;
         }
         throw new NotImplementedException();
     }
