@@ -7,6 +7,9 @@ public class Edge
     public Vector2 start { get; set; }
     public Vector2 end { get; set; }
 
+    public PolygonVertex startVertex { get; set; }
+    public PolygonVertex endVertex { get; set; }
+
     // Helper of this edge which we need for triangulation.
     [field: SerializeField]
     public PolygonVertex HelperVertex { get; set; }
@@ -15,12 +18,17 @@ public class Edge
     {
         this.start = startVertex.GetComponent<PolygonVertex>().transform.position;
         this.end = endVertex.GetComponent<PolygonVertex>().transform.position;
+        // this.startVertex = startVertex.GetComponent<PolygonVertex>();
+        // this.endVertex = endVertex.GetComponent<PolygonVertex>();
     }
 
     public Edge(PolygonVertex startVertex, PolygonVertex endVertex)
     {
         this.start = new Vector2(startVertex.x, startVertex.y);
         this.end = new Vector2(endVertex.x, endVertex.y);
+        // this.startVertex = startVertex;
+        // this.endVertex = endVertex;
+    
     }
 
     public Edge(Vector2 start, Vector2 end)
@@ -90,6 +98,46 @@ public class Edge
     {
         Debug.Log("[Edge] " + start + " - " + end);
         Debug.DrawLine(start, end, color, duration);
+    }
+
+
+
+    // Checks if two edges are the same
+    public bool IsEqual(Edge other)
+    {
+        return (this.start == other.start) && (this.end == other.end) || (this.end == other.start) && (this.start == other.end);
+    }
+
+    // Checks if two edges are the reverse of each other
+    public bool IsReversed(Edge other)
+    {
+        return (this.end == other.start) && (this.start == other.end);
+    }
+
+    // Checks if two edge (partially) overlap
+    // @TODO implement this
+    public bool Overlaps(Edge other)
+    {
+        return true;
+    }
+
+    public float CalculateXSlope()
+    {
+        float deltaY = end.y - start.y;
+        if(deltaY == 0) {
+            return float.PositiveInfinity;
+        }
+        return (end.x - start.x) / deltaY;
+    }
+
+    // Calculate the x-coordinate intersection for a given y.
+    public float CalculateXIntersection(float y)
+    {
+        float xSlope = CalculateXSlope();
+        if(xSlope == float.PositiveInfinity) {
+            return start.x;
+        }
+        return start.x + (y - start.y) * xSlope;
     }
 }
 
