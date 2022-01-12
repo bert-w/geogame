@@ -6,6 +6,19 @@ public class PolygonVertex : MonoBehaviour
 {
     public enum _Type { Start, End, Split, Merge, Regular }
 
+    private readonly IDictionary<_Type, Color> typeColors = new Dictionary<_Type, Color>(){
+        {_Type.Start, UnityEngine.Color.cyan},
+        {_Type.End, UnityEngine.Color.blue},
+        {_Type.Split, UnityEngine.Color.red},
+        {_Type.Merge, UnityEngine.Color.yellow},
+        {_Type.Regular, UnityEngine.Color.magenta}
+    };
+    
+    private readonly IDictionary<string, object> defaults = new Dictionary<string, object>(){
+        {"Color", UnityEngine.Color.black},
+        {"Scale", 30f},
+    };
+
     public Edge prevEdge;
     public Edge nextEdge;
     public float x;
@@ -26,8 +39,8 @@ public class PolygonVertex : MonoBehaviour
     private void Awake()
     {
         // Set defaults.
-        Color = UnityEngine.Color.black;
-        Scale = 30;
+        Color = (Color) defaults["Color"];
+        Scale = (float) defaults["Scale"];
 
         x = transform.position.x;
         y = transform.position.y;
@@ -37,6 +50,11 @@ public class PolygonVertex : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void ShowColors(bool value)
+    {
+        Color = (Color) (value ? typeColors[Type] : defaults["Color"]);
     }
 
     public Vector2 ToVector()
@@ -54,8 +72,9 @@ public class PolygonVertex : MonoBehaviour
             return _scale;
         }
         set {
-            transform.localScale = new Vector3(value.GetValueOrDefault(30), value.GetValueOrDefault(30), 1);
-            _scale = value.GetValueOrDefault(30);
+            var _value = value.GetValueOrDefault((float) defaults["Scale"]);
+            transform.localScale = new Vector3(_value, _value, 1);
+            _scale = _value;
         }
     }
 
@@ -64,8 +83,15 @@ public class PolygonVertex : MonoBehaviour
             return _color;
         }
         set {
-            GetComponent<SpriteRenderer>().color = value.GetValueOrDefault(UnityEngine.Color.black);
-            _color = value.GetValueOrDefault(UnityEngine.Color.black);
+            var _value = value.GetValueOrDefault((Color) defaults["Color"]);
+            GetComponent<SpriteRenderer>().color = _value;
+            _color = _value;
         }
+    }
+
+    // @TODO check if this is correct
+    public bool IsEqual(PolygonVertex other)
+    {
+        return ((x == other.x) && (y == other.y) && (prevEdge.IsEqual(other.prevEdge)) && (nextEdge.IsEqual(other.nextEdge)));
     }
 }

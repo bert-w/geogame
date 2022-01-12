@@ -7,11 +7,12 @@ public class GameEventController : MonoBehaviour
 {
     public List<Edge> edgeList = new List<Edge>();
     public Camera mainCam;
-    public float width;
-    public Color color = Color.red;
+    public float LineWidth;
+
+    public Color LineColor = Color.black;
 
     private bool polygonStarted = false;
-    private LineRenderer polygonLine;
+    public LineRenderer polygonLine;
 
     public Polygon challengePolygon;
 
@@ -35,7 +36,10 @@ public class GameEventController : MonoBehaviour
             return;
         }
 
-        if (CheckNotIntersect(mousePos)){
+        Edge intersectedEdge = IntersectsPolygon(mousePos);
+        // Check if no edges are intersected and if there is, then we check if this is the snapvertex. This
+        // allows us to snap to the snapvertex even if we cross an edge while near it.
+        if (intersectedEdge == null || (snapToVertex && intersectedEdge.start.Equals(snapToVertex.ToVector()))) {
             Edge newEdge;
             if(snapToVertex) {
                 // Snap to the given vertex.
@@ -48,12 +52,14 @@ public class GameEventController : MonoBehaviour
                 p.vertices[p.vertices.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
                 snapToVertex.prevEdge = newEdge;
 
-                // Pass current vertexlist to the placeLightsController and activate it.
-                challengePolygon.edges = edgeList;
-                
-                placeLightsController.SetValues(challengePolygon);
                 snapToVertex.Color = null;
                 snapToVertex.Scale = null;
+
+                challengePolygon.edges = edgeList;
+                challengePolygon.Completed = true;
+                
+                // Pass current vertexlist to the placeLightsController and activate it.
+                placeLightsController.SetValues(challengePolygon);
                 placeLightsController.enabled = true;
                 // Disable this controller.
                 enabled = false;
@@ -76,25 +82,18 @@ public class GameEventController : MonoBehaviour
         {
             Debug.Log("Not Possible!");
         }
-
-  
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        challengePolygon = Instantiate(new GameObject().AddComponent<Polygon>());
+        challengePolygon = new GameObject().AddComponent<Polygon>();
         challengePolygon.name = "Challenge Polygon";
         challengePolygon.transform.SetParent(transform);
 
-        polygonLine = gameObject.AddComponent<LineRenderer>();
-        polygonLine.material.color = color;
-        polygonLine.widthMultiplier = width;
-        polygonLine.numCornerVertices = 1;
-        polygonLine.numCapVertices = 1;
-
-        placeLightsController = gameObject.GetComponent<PlaceLightsController>();
-        placeLightsController.enabled = false;
+        polygonLine = GetComponent<LineRenderer>();
+        polygonLine.material.color = LineColor;
+        polygonLine.widthMultiplier = LineWidth;
     }
 
     // Update is called once per frame
@@ -130,28 +129,27 @@ public class GameEventController : MonoBehaviour
         return null;
     }
 
-    // checks if the new added edge is legal and does not intersect previous edges
-    public bool CheckNotIntersect(Vector3 currPos)
+    // checks if the new added edge is legal and does not intersect previous edges.
+    public Edge IntersectsPolygon(Vector3 currPos)
     {
         if (edgeList.Count == 0)
-            return true;
+            return null;
 
         Vector2 currPos2 = currPos;
         Vector2 prevPos = edgeList[edgeList.Count - 1].end;
 
         Edge tempEdge = new Edge(prevPos, currPos2);
         tempEdge.DebugDraw();
-        for (int i = 0; i < edgeList.Count; i++)
+        foreach(Edge edge in edgeList)
         {
-            var currEdge = edgeList[i];
-            currEdge.DebugDraw();
-            if (null != currEdge.Crosses(tempEdge))
+            edge.DebugDraw();
+            if (edge.Crosses(tempEdge).HasValue)
             {
-                return false;
+                return edge;
             } 
         }
 
-        return true;
+        return null;
     }
 
 

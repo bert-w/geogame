@@ -8,25 +8,43 @@ public class Polygon : MonoBehaviour
     public enum _Direction {None, CW, CCW}
 
     [field: SerializeField]
-    public List<PolygonVertex> vertices { get; set; }
+    public List<PolygonVertex> vertices { get; set; } = new List<PolygonVertex>();
 
-
-    public GameObject polygonVertex;
+    private GameObject polygonVertex;
 
     // @TODO i might not even need the edges since the vertices are in order.
+    // Edges might be nice for polygon merging
     [field: SerializeField]
-    public List<Edge> edges { get; set; }
+    public List<Edge> edges { get; set; } = new List<Edge>();
 
     [field: SerializeField]
-    public List<Edge> triangulation { get; set; }
+    public List<Edge> triangulation { get; set; } = new List<Edge>();
 
+    // Determines if the polygon has been completed.
+    [SerializeField]
+    private bool _completed = false;
+
+    // The direction (CW/CCW) of the vertices to determine the inner polygon.
     [SerializeField]
     private _Direction _direction = _Direction.None;
 
+    [SerializeField]
+    private bool showColors = false;
+
     void Start()
     {
-        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject))) as GameObject;
-        polygonVertex.transform.SetParent(transform);
+        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+    }
+    
+    // Update is called once per frame
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.T)) {
+            showColors = !showColors;
+            foreach(PolygonVertex vertex in vertices) {
+                vertex.ShowColors(showColors);
+            }
+        }
     }
 
     private void Awake()
@@ -44,10 +62,8 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(Vector2 vector)
     {
-        PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity).GetComponent<PolygonVertex>();
+        PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
         vertex.gameObject.name = "Polygon Vertex " + vertices.Count;
-        // Assign parent as this object.
-        vertex.transform.SetParent(transform);
         return Add(vertex);
     }
 
@@ -59,10 +75,18 @@ public class Polygon : MonoBehaviour
         vertices.Clear();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    
+    public bool Completed {
+        get {
+            return _completed;
+        }
+        set {
+            _completed = value;
+            if(value) {
+                // When completed, calculate the vertex types.
+                AssignVertexTypes();
+            }
+        }
     }
 
     // Assign vertex types (split/merge/start/end) to each vertex.
@@ -82,20 +106,15 @@ public class Polygon : MonoBehaviour
             }
 
             // Assign types to polygon vertices.
-            if(e.y > prev.y && e.y > next.y && e.x > prev.x && angle < 180) {
+            if(e.y > prev.y && e.y > next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.Start;
-                e.Color = Color.cyan;
-            } else if(e.y > prev.y && e.y > next.y && e.x < prev.x && angle > 180) { 
+            } else if(e.y > prev.y && e.y > next.y && angle > 180) { 
                 e.Type = PolygonVertex._Type.Split;
-                e.Color = Color.red;
             } else if(e.y < prev.y && e.y < next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.End;
-                e.Color = Color.blue;
-            } else if(e.y < prev.y && e.y < next.y && e.x > prev.x && angle > 180) {
+            } else if(e.y < prev.y && e.y < next.y && angle > 180) {
                 e.Type = PolygonVertex._Type.Merge;
-                e.Color = Color.yellow;
             } else {
-                e.Color = Color.magenta;
                 e.Type = PolygonVertex._Type.Regular;
             }
         }
@@ -138,15 +157,15 @@ public class Polygon : MonoBehaviour
         AssignVertexTypes();
         AssignVertexLeftEdges();
 
-        foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
-        {
-            if(vertex.Type == PolygonVertex._Type.Split) {
-                // Create new edge between this vertex and the helper of its left edge.
-                Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
-                edge.DebugDraw(Color.magenta, 100f);
-                triangulation.Add(edge);
-            }
-        }
+        // foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
+        // {
+        //     if(vertex.Type == PolygonVertex._Type.Split) {
+        //         // Create new edge between this vertex and the helper of its left edge.
+        //         Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
+        //         edge.DebugDraw(Color.magenta, 100f);
+        //         triangulation.Add(edge);
+        //     }
+        // }
 
         TriangulateYMonotone();
     }
@@ -165,5 +184,20 @@ public class Polygon : MonoBehaviour
     private List<Polygon> CreateYMonotone()
     {
         return new List<Polygon>();
+    }
+
+    public PolygonVertex PolygonYMax()
+    {
+        var maxY = this.vertices[0].y;
+        var maxVertex = this.vertices[0];
+        for (int i = 0; i < this.vertices.Count; i++)
+        {
+            if (vertices[i].y >= maxY)
+            {
+                maxY = vertices[i].y;
+                maxVertex = vertices[i];
+            }
+        }
+        return maxVertex;
     }
 }
