@@ -52,15 +52,24 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
     }
 
     private TreeNode root;
+    private TreeNode TNull;
+
+    public RedBlackTree()
+    {
+        TNull = new TreeNode(null, Color.Black);
+        root = TNull;
+    }
 
     public void Add(TNode data)
     {
         var node = new TreeNode(data, Color.Red);
+        node.Left = TNull; 
+        node.Right = TNull;
 
         TreeNode y = null;
-        TreeNode x = this.root;
+        TreeNode x = root;
 
-        while (x != null)
+        while (x != TNull)
         {
             y = x;
             if (node.Data.CompareTo(x.Data) < 0)
@@ -107,14 +116,20 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
 
     public void Delete(TNode data)
     {
+        if (root == TNull || root.Data.Equals(data) && root.Left == TNull && root.Right == TNull)
+        {
+            root = TNull;
+            return;
+        }
+
         TreeNode node = root;
 
-        TreeNode z = null;
+        TreeNode z = TNull;
         TreeNode x, y;
 
-        while (node != null)
+        while (node != TNull)
         {
-            if (node.Data == data)
+            if (node.Data.Equals(data))
             {
                 z = node;
             }
@@ -129,20 +144,33 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
             }
         }
 
-        if (z == null)
+        if (z == TNull)
         {
-            // The item to delete was not found
+            Console.WriteLine("The item to delete was not found");
             return;
         }
 
+        //if (z.Left == TNull && z.Right == TNull)
+        //{
+        //    if (z.Parent.Left == z)
+        //    {
+        //        z.Parent.Left = null;
+        //    }
+        //    else
+        //    {
+        //        z.Parent.Right = null;
+        //    }
+        //    return;
+        //}
+
         y = z;
         Color yOriginalColor = y.Color;
-        if (z.Left == null)
+        if (z.Left == TNull)
         {
             x = z.Right;
             RedBlackTransplant(z, z.Right);
         }
-        else if (z.Right == null)
+        else if (z.Right == TNull)
         {
             x = z.Left;
             RedBlackTransplant(z, z.Left);
@@ -177,12 +205,17 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
 
     public TNode FindMin()
     {
+        if (root == TNull)
+        {
+            return null;
+        }
+
         return FindMinFromNode(root).Data;
     }
 
     private TreeNode FindMinFromNode(TreeNode node)
     {
-        while (node.Left != null)
+        while (node.Left != TNull)
         {
             node = node.Left;
         }
@@ -193,35 +226,59 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
     /// <summary>
     /// this function performs Left rotation
     /// </summary>
-    /// <param name="node"></param>
-    /// <returns></returns>
-    private TreeNode RotateLeft(TreeNode node)
+    /// <param name="x"></param>
+    private void RotateLeft(TreeNode x)
     {
-        TreeNode x = node.Right;
-        TreeNode y = x.Left;
-        x.Left = node;
-        node.Right = y;
-        node.Parent = x; // Parent resetting is also important.
-        if (y != null)
-            y.Parent = node;
-        return x;
+        TreeNode y = x.Right;
+        x.Right = y.Left;
+        if (y.Left != TNull)
+        {
+            y.Left.Parent = x;
+        }
+        y.Parent = x.Parent;
+        if (x.Parent == null)
+        {
+            root = y;
+        }
+        else if (x == x.Parent.Left)
+        {
+            x.Parent.Left = y;
+        }
+        else
+        {
+            x.Parent.Right = y;
+        }
+        y.Left = x;
+        x.Parent = y;
     }
 
     /// <summary>
     /// this function performs Right rotation
     /// </summary>
-    /// <param name="node"></param>
-    /// <returns></returns>
-    private TreeNode RotateRight(TreeNode node)
+    /// <param name="x"></param>
+    private void RotateRight(TreeNode x)
     {
-        TreeNode x = node.Left;
-        TreeNode y = x.Right;
-        x.Right = node;
-        node.Left = y;
-        node.Parent = x;
-        if (y != null)
-            y.Parent = node;
-        return x;
+        TreeNode y = x.Left;
+        x.Left = y.Right;
+        if (y.Right != TNull)
+        {
+            y.Right.Parent = x;
+        }
+        y.Parent = x.Parent;
+        if (x.Parent == null)
+        {
+            root = y;
+        }
+        else if (x == x.Parent.Right)
+        {
+            x.Parent.Right = y;
+        }
+        else
+        {
+            x.Parent.Left = y;
+        }
+        y.Right = x;
+        x.Parent = y;
     }
 
     private void RebalanceAfterInsert(TreeNode newNode)
@@ -232,6 +289,13 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
             if (newNode.Parent == newNode.Parent.Parent.Right)
             {
                 uncle = newNode.Parent.Parent.Left;
+
+                // TODO check of weg kan
+                if (uncle == null)
+                {
+                    break;
+                }
+
                 if (uncle.Color == Color.Red)
                 {
                     uncle.Color = Color.Black;
@@ -254,6 +318,12 @@ public class RedBlackTree<TNode> : IBinarySearchTree<TNode> where TNode : class,
             else
             {
                 uncle = newNode.Parent.Parent.Right;
+
+                // TODO item
+                if (uncle == null)
+                {
+                    break;
+                }
 
                 if (uncle.Color == Color.Red)
                 {

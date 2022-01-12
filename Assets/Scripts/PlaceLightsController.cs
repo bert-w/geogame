@@ -1,3 +1,4 @@
+using Assets.Scripts.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,73 +59,138 @@ public class PlaceLightsController : MonoBehaviour
     {
         Vector3 mPos = GetMousePosition();
 
-        eventQueue = GenerateEventQueue(mPos);
-
-        List<Edge> edges = challengePolygon.edges;
-
         visibilityPolygon.empty();
+        
+        var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
 
-        for(var i = 0; i < eventQueue.Count; i++) {
-            PolygonVertex vertex = eventQueue[i].GetComponent<PolygonVertex>();
-            Edge rayCast = new Edge(mPos, vertex.transform.position);
-            Debug.DrawLine(mPos, vertex.transform.position, Color.blue, .1f);
-            float length = rayCast.Length;
-            bool intersected = false;
-            for(var j = 0; j < edges.Count; j++) {
-                Debug.DrawLine(edges[j].start, edges[j].end, Color.red, .1f);
-                Vector3? intersection = rayCast.Crosses(edges[j]);
-                if(intersection.HasValue) {
-                    
-                    intersected = true;
-                    visibilityPolygon.Add(intersection.Value);
-                    break;
-                }
-            }
-            if(!intersected) {
-                visibilityPolygon.Add(vertex.ToVector());
-            }
+        // Goed checken
+        foreach (var edge in visibilityPolygonEdges)
+        {
+            // TODO de punten staan in order can visibility dus voor het teken moet je alleen kijken wel punt overlap en op basis daarvan start en end swappen
+            visibilityPolygon.Add(edge.start); 
+            visibilityPolygon.Add(edge.end);
         }
+        visibilityPolygon.Add(visibilityPolygonEdges.First().start);
 
-        visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v => {
+        visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v =>
+        {
             return new Vector3(v.x, v.y, 0);
         }).ToArray());
 
         visibilityPolygonLine.positionCount = visibilityPolygon.vertices.Count;
 
+
+
+        visibilityPolygon.empty();
+
+
+        List<Edge> edges = challengePolygon.edges;
+
         visibilityPolygon.empty();
     }
 
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
-    List<PolygonVertex> GenerateEventQueue(Vector3 mPos)
+    private List<Event> GenerateEventQueue(Vector3 mPos)
     {
-        // Convert the list of vertices to polar coordinates so we can create an event queue for the radial sweep.
-        for(var i = 0; i < challengePolygon.vertices.Count; i++) {
-            PolygonVertex vertex = challengePolygon.vertices[i];
+        var unsortedQueue = new List<Event>();
 
-            // Set coordinates relative to the current mouse position.
-            Vector3 vPos = mPos - vertex.transform.position;
+        var tuple = SafeVertexFinder.Find(challengePolygon.edges, mPos);
+        var startVertex = tuple.Item2;
+        var startEdge = tuple.Item1;
 
-            // https://www.mathsisfun.com/polar-cartesian-coordinates.html
-            float hypothenuse = Mathf.Sqrt(Mathf.Pow(vPos.x, 2) + Mathf.Pow(vPos.y, 2));
+        float minDegrees = PolarCoordinateBuilder.Build(startVertex, mPos).y;
 
-            float tangent = Mathf.Atan(vPos.y / vPos.x);
-
-            // Quadrant correction
-            if(vPos.x < 0) {
-                // Quadrant 2 or 3.
-                tangent += Mathf.PI;
-            } else if(vPos.x > 0 && vPos.y < 0) {
-                // Quadrant 4.
-                tangent += 2 * Mathf.PI;
+        int edgeId = 0;
+        foreach (var edge in challengePolygon.edges)
+        {
+            // TODO dubbel check x and y
+            var Polar1 = PolarCoordinateBuilder.Build(mPos, edge.start);
+            var degrees1 = Polar1.y - minDegrees;
+            if (degrees1 < 0)
+            {
+                degrees1 += 2 * Mathf.PI;
+            }
+            var Polar2 = PolarCoordinateBuilder.Build(mPos, edge.end);
+            var degrees2 = Polar2.y - minDegrees;
+            if (degrees2 < 0)
+            {
+                degrees2 += 2 * Mathf.PI;
             }
 
-            // Assign polar coordinates to the vertex object.
-            vertex.polarCoordinates = new Vector3(hypothenuse, tangent);
+            if (SafeVertexFinder.IsStartVertex(edge, mPos))
+            {
+                var startEvent = new Event(mPos, Polar1.x, Polar2.x, degrees1, edge, EventType.Start);
+                unsortedQueue.Add(startEvent);
+                // Since the edges are non crossing we use the start event distance for easy searching in the binary search tree
+                var endEvent = new Event(mPos, Polar1.x, Polar2.x, degrees2, edge, EventType.End);
+                startEvent.Id = edgeId;
+                endEvent.Id = edgeId;
+                unsortedQueue.Add(endEvent);
+            }
+            else
+            {
+                var startEvent = new Event(mPos, Polar2.x, Polar1.x, degrees2, edge, EventType.Start);
+                unsortedQueue.Add(startEvent);
+                // Since the edges are non crossing we use the start event distance for easy searching in the binary search tree
+                var endEvent = new Event(mPos, Polar2.x, Polar1.x, degrees1, edge, EventType.End);
+                startEvent.Id = edgeId;
+                endEvent.Id = edgeId;
+                unsortedQueue.Add(endEvent);
+            }
 
+            edgeId++;
         }
 
-        // Sort by y (polar) coordinate.
-        return challengePolygon.vertices.OrderBy(v => v.polarCoordinates.y).ToList();
+        return unsortedQueue.OrderBy(queueItem => queueItem.Degrees).ToList();
+    }
+
+    private List<Edge> GenerateVisibilityPolygon(Vector3 mPos)
+    {
+        var polygon = new List<Edge>();
+        var queue = GenerateEventQueue(mPos);
+        var state = new RedBlackTree<Event>();
+
+        for (int i = 0; i < queue.Count; i+=2)
+        {
+            var event1 = queue[i];
+            var event2 = queue[i+1];
+
+            if (event1.Type == EventType.Start && event2.Type == EventType.Start)
+            {
+                state.Add(event1);
+                state.Add(event2);
+            }
+            else if (event1.Type == EventType.End && event2.Type == EventType.End)
+            {
+                state.Delete(event1);
+                state.Delete(event2);
+            }
+            else if (event1.Type == EventType.Start && event2.Type == EventType.End)
+            {
+                state.Add(event1);
+                state.Delete(event2);
+            }
+            else if (event1.Type == EventType.End && event2.Type == EventType.Start)
+            {
+                state.Delete(event1);
+                state.Add(event2);
+            }
+
+            var minEvent = state.FindMin();
+
+            if (minEvent != null)
+            {
+
+                minEvent.Edge.DebugDraw();
+            }
+
+            if (minEvent != null)
+            {
+                polygon.Add(minEvent.Edge);
+            }
+        }
+
+        return polygon.Distinct().ToList();
     }
 
     Vector3 GetMousePosition()
