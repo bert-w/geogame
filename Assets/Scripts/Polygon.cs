@@ -2,10 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Util.Algorithms.Triangulation;
+using Util.Geometry.Triangulation;
+using Util.Geometry.Polygon;
 
 public class Polygon : MonoBehaviour
 {
     public enum _Direction {None, CW, CCW}
+
+    public Mesh triangulationMesh;
 
     [field: SerializeField]
     public List<PolygonVertex> vertices { get; set; } = new List<PolygonVertex>();
@@ -31,6 +36,10 @@ public class Polygon : MonoBehaviour
     [SerializeField]
     private bool showColors = false;
 
+    
+    [SerializeField]
+    private bool showTriangulationEdges = false;
+
     void Start()
     {
         polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
@@ -43,6 +52,32 @@ public class Polygon : MonoBehaviour
             showColors = !showColors;
             foreach(PolygonVertex vertex in vertices) {
                 vertex.ShowColors(showColors);
+            }
+        }
+
+        // @TODO make Edges into gameObjects so we can set visibility of edges properly using a LineRenderer and
+        // an Update() loop, since the visibility is now drawn using Debug lines which are not visible in the final build.
+        // See PolygonVertex example above.
+        if(Input.GetKeyDown(KeyCode.E)) {
+            showTriangulationEdges = !showTriangulationEdges;
+        }
+        if(triangulationMesh && showTriangulationEdges) {
+            Material mat = new Material(Shader.Find("Sprites/Default"));
+            mat.color = new Color(1f, 1f, 1f, 0.5f);
+            Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
+
+            int[] t = triangulationMesh.triangles;
+            for(int offset = 0; offset < t.Count() - 2; offset+=3) {
+                Vector3[] v = triangulationMesh.vertices;
+                List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
+                    (v[t[offset]], v[t[offset + 1]]),
+                    (v[t[offset + 1]], v[t[offset + 2]]),
+                    (v[t[offset + 2]], v[t[offset]]),
+                };
+                foreach((Vector3 start, Vector3 end) in edges) {
+                    Edge e = new Edge(start, end);
+                    e.DebugDraw();
+                }
             }
         }
     }
@@ -154,36 +189,15 @@ public class Polygon : MonoBehaviour
             vertices.Reverse();
         }
 
-        AssignVertexTypes();
-        AssignVertexLeftEdges();
+        List<Vector2> vector2s = vertices.Select(v => v.ToVector()).ToList();
 
-        // foreach(PolygonVertex vertex in vertices.OrderBy(v => -v.y).ToList())
-        // {
-        //     if(vertex.Type == PolygonVertex._Type.Split) {
-        //         // Create new edge between this vertex and the helper of its left edge.
-        //         Edge edge = new Edge(vertex, vertex.LeftHelperEdge.HelperVertex);
-        //         edge.DebugDraw(Color.magenta, 100f);
-        //         triangulation.Add(edge);
-        //     }
-        // }
-
-        TriangulateYMonotone();
-    }
-
-    private void TriangulateYMonotone()
-    {
-        //
+        triangulationMesh = Triangulator.Triangulate(new Polygon2D(vector2s)).CreateMesh();
     }
 
     // Merge a polygon with another one.
     public Polygon Merge(Polygon p)
     {
         throw new System.Exception("Not implemented");
-    }
-
-    private List<Polygon> CreateYMonotone()
-    {
-        return new List<Polygon>();
     }
 
     public PolygonVertex PolygonYMax()

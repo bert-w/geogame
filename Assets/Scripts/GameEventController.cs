@@ -57,6 +57,8 @@ public class GameEventController : MonoBehaviour
 
                 challengePolygon.edges = edgeList;
                 challengePolygon.Completed = true;
+
+                challengePolygon.Triangulate();
                 
                 // Pass current vertexlist to the placeLightsController and activate it.
                 placeLightsController.SetValues(challengePolygon);
