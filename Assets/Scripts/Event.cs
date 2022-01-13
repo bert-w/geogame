@@ -51,24 +51,45 @@ public class Event : IComparable
         EndDistance = oldStartDistance;
     }
 
+    public bool RayCastsIntersectWithEdge(Edge edge)
+    {
+        var crossing = rayCast1.Crosses(edge);
+        if (crossing != null)
+        {
+            return true;
+        }
+
+        crossing = rayCast2.Crosses(edge);
+        if (crossing != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public int CompareTo(object obj)
     {
         // Misschien toch ray gebruiken met crossing
         if (obj is Event otherEvent)
         {
-            var crossing = rayCast1.Crosses(otherEvent.Edge);
-            if (crossing != null)
+            if (RayCastsIntersectWithEdge(otherEvent.Edge))
             {
                 return 1;
             }
 
-            crossing = rayCast2.Crosses(otherEvent.Edge);
-            if (crossing != null)
+            if (otherEvent.RayCastsIntersectWithEdge(Edge))
             {
-                return 1;
+                return -1;
             }
 
-            return -1;
+            Debug.Log("No intersection found");
+            if (StartDistance == otherEvent.StartDistance)
+            {
+                return EndDistance.CompareTo(otherEvent.EndDistance);
+            }
+
+            return StartDistance.CompareTo(otherEvent.StartDistance);
         }
         throw new NotImplementedException();
     }

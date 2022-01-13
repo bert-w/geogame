@@ -174,10 +174,11 @@ public class PlaceLightsController : MonoBehaviour
             }
             else
             {
-                var startEvent = new Event(mPos, Polar2.x, Polar1.x, degrees2, edge, EventType.Start);
+                var reveredEdge = new Edge(edge.end, edge.start);
+                var startEvent = new Event(mPos, Polar2.x, Polar1.x, degrees2, reveredEdge, EventType.Start);
                 unsortedQueue.Add(startEvent);
                 // Since the edges are non crossing we use the start event distance for easy searching in the binary search tree
-                var endEvent = new Event(mPos, Polar2.x, Polar1.x, degrees1, edge, EventType.End);
+                var endEvent = new Event(mPos, Polar2.x, Polar1.x, degrees1, reveredEdge, EventType.End);
                 startEvent.Id = edgeId;
                 endEvent.Id = edgeId;
                 unsortedQueue.Add(endEvent);
@@ -194,6 +195,8 @@ public class PlaceLightsController : MonoBehaviour
         var polygon = new List<Edge>();
         var queue = GenerateEventQueue(mPos);
         var state = new RedBlackTree<Event>();
+        Edge previousEmittedEdge = null;
+        Vector2? partialVisibleEdge = null;
 
         for (int i = 0; i < queue.Count; i += 2)
         {
@@ -202,6 +205,17 @@ public class PlaceLightsController : MonoBehaviour
 
             if (event1.Type == EventType.Start && event2.Type == EventType.Start)
             {
+                var overlappingVertex = event1.Edge.FindOverlappingVertex(event2.Edge).Value;
+                var intersectionPoint = GetRayIntersectionPoint(mPos, overlappingVertex, state);
+
+                if (intersectionPoint != null)
+                {
+                    partialVisibleEdge = intersectionPoint;
+                    var previousEdge = polygon.Last();
+                    polygon[polygon.Count - 1] = new Edge(previousEdge.start, intersectionPoint.Value);
+                    polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                }
+
                 state.Add(event1);
                 state.Add(event2);
             }
@@ -209,6 +223,25 @@ public class PlaceLightsController : MonoBehaviour
             {
                 state.Delete(event1);
                 state.Delete(event2);
+
+                var overlappingVertex = event1.Edge.FindOverlappingVertex(event2.Edge).Value;
+                var intersectionPoint = GetRayIntersectionPoint(mPos, overlappingVertex, state);
+
+                if (intersectionPoint != null)
+                {
+                    var minItem = state.FindMin();
+                    if (minItem != null)
+                    {
+                        partialVisibleEdge = intersectionPoint;
+                        polygon[polygon.Count - 1] = new Edge(intersectionPoint.Value, minItem.Edge.end);
+                        polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                    }
+
+                    polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                    partialVisibleEdge = intersectionPoint;
+                }
+
+                continue;
             }
             else if (event1.Type == EventType.Start && event2.Type == EventType.End)
             {
@@ -223,19 +256,36 @@ public class PlaceLightsController : MonoBehaviour
 
             var minEvent = state.FindMin();
 
-            if (minEvent != null)
-            {
-
-                minEvent.Edge.DebugDraw();
-            }
+            //if (minEvent != null)
+            //{
+            //    minEvent.Edge.DebugDraw();
+            //}
 
             if (minEvent != null)
             {
                 polygon.Add(minEvent.Edge);
+                previousEmittedEdge = minEvent.Edge;
             }
         }
 
         return polygon.Distinct().ToList();
+    }
+
+    private Vector2? GetRayIntersectionPoint(Vector2 lightPoint, Vector2 intersectionPoint, IBinarySearchTree<Event> state)
+    {
+        var direction = intersectionPoint - lightPoint;
+        var ray = new Ray(lightPoint, direction);
+
+        // TODO don't use large point but vector directly
+        var largePoint = ray.GetPoint(10000);
+        var rayEdge = new Edge(intersectionPoint, largePoint);
+
+        var minEvent = state.FindMin();
+        if (minEvent != null)
+        {
+            return rayEdge.Crosses(minEvent.Edge);
+        }
+        return null;
     }
 
     Vector3 GetMousePosition()
