@@ -16,6 +16,9 @@ public class GameEventController : MonoBehaviour
 
     public Polygon challengePolygon;
 
+    public AudioClip audioClipClick;
+    public AudioClip audioClipError;
+
     public PlaceLightsController placeLightsController;
 
     public void OnClick(PolygonVertex snapToVertex)
@@ -26,6 +29,7 @@ public class GameEventController : MonoBehaviour
         Polygon p = challengePolygon;
 
         if (!polygonStarted){
+            GetComponent<AudioSource>().PlayOneShot(audioClipClick, 0.1f);
             polygonStarted = true;
             challengePolygon.Add(mousePos);
             polygonLine.enabled = true;
@@ -40,6 +44,7 @@ public class GameEventController : MonoBehaviour
         // Check if no edges are intersected and if there is, then we check if this is the snapvertex. This
         // allows us to snap to the snapvertex even if we cross an edge while near it.
         if (intersectedEdge == null || (snapToVertex && intersectedEdge.start.Equals(snapToVertex.ToVector()))) {
+            GetComponent<AudioSource>().PlayOneShot(audioClipClick, 0.1f);
             Edge newEdge;
             if(snapToVertex) {
                 // Snap to the given vertex.
@@ -82,6 +87,7 @@ public class GameEventController : MonoBehaviour
         }
         else
         {
+            GetComponent<AudioSource>().PlayOneShot(audioClipError, 0.3f);
             Debug.Log("Not Possible!");
         }
     }
