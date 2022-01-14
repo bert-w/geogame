@@ -124,7 +124,14 @@ public class PlaceLightsController : MonoBehaviour
             visibilityPolygon.Add(edge.start);
             visibilityPolygon.Add(edge.end);
         }
+
+
         visibilityPolygon.Add(visibilityPolygonEdges.First().start);
+
+
+        // @TODO dit moet weg
+        RemoveDuplicate(visibilityPolygon, mPos);
+
 
         visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v =>
         {
@@ -197,7 +204,8 @@ public class PlaceLightsController : MonoBehaviour
             pol.vertices.RemoveAt(item);
         }
 
-        // sorting by polar coordinate angle
+        // sorting by polar coordinate angle, then by distance to mPos
+        // does not work perfectly and needs to be changed
         pol.vertices = pol.vertices.OrderBy(o => PolarCoordinateBuilder.Build(o.ToVector(), mPos).y).ToList();
     }
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
