@@ -59,7 +59,8 @@ public class Polygon : MonoBehaviour
 
     void Awake()
     {
-        //
+        // NOTE: im not sure why we need this repeated here, some lifecycle issue.
+        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
     }
 
     void Start()
