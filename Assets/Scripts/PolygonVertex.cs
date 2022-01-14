@@ -26,6 +26,8 @@ public class PolygonVertex : MonoBehaviour
 
     public Vector3 polarCoordinates;
 
+    public bool showTypeColor;
+
     [field: SerializeField]
     public _Type Type { get; set; }
 
@@ -49,12 +51,7 @@ public class PolygonVertex : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-    }
-
-    public void ShowColors(bool value)
-    {
-        Color = (Color) (value ? typeColors[Type] : defaults["Color"]);
+        Color = (Color) (showTypeColor ? typeColors[Type] : defaults["Color"]);
     }
 
     public Vector2 ToVector()

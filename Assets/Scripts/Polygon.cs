@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,32 +18,41 @@ public class Polygon : MonoBehaviour
 
     private GameObject polygonVertex;
 
-    // @TODO i might not even need the edges since the vertices are in order.
-    // Edges might be nice for polygon merging
+    /// <summary>
+    /// The edges of the polygon.
+    /// </summary>
     [field: SerializeField]
     public List<Edge> edges { get; set; } = new List<Edge>();
+
+    /// <summary>
+    /// The edges of the triangulation of the polygon.
+    /// </summary>
+    public List<GameEdge> triangulationGameEdges { get; set; } = new List<GameEdge>();
 
     [field: SerializeField]
     public List<Edge> triangulation { get; set; } = new List<Edge>();
 
-    // Determines if the polygon has been completed.
+    /// <summary>
+    /// Determines if the polygon has been completed.
+    /// </summary>
     [SerializeField]
     private bool _completed = false;
 
-    // The direction (CW/CCW) of the vertices to determine the inner polygon.
+    /// <summary>
+    /// The direction (CW/CCW) of the vertices to determine the inner polygon.
+    /// </summary>
     [SerializeField]
     private _Direction _direction = _Direction.None;
 
     [SerializeField]
-    private bool showColors = false;
+    private bool showVertexTypeColor = false;
 
-    
     [SerializeField]
     private bool showTriangulationEdges = false;
 
     void Awake()
     {
-        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+        //
     }
 
     void Start()
@@ -54,35 +64,16 @@ public class Polygon : MonoBehaviour
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.T)) {
-            showColors = !showColors;
+            showVertexTypeColor = !showVertexTypeColor;
             foreach(PolygonVertex vertex in vertices) {
-                vertex.ShowColors(showColors);
+                vertex.showTypeColor = showVertexTypeColor;
             }
         }
 
-        // @TODO make Edges into gameObjects so we can set visibility of edges properly using a LineRenderer and
-        // an Update() loop, since the visibility is now drawn using Debug lines which are not visible in the final build.
-        // See PolygonVertex example above.
         if(Input.GetKeyDown(KeyCode.E)) {
             showTriangulationEdges = !showTriangulationEdges;
-        }
-        if(triangulationMesh && showTriangulationEdges) {
-            Material mat = new Material(Shader.Find("Sprites/Default"));
-            mat.color = new Color(1f, 1f, 1f, 0.5f);
-            Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
-
-            int[] t = triangulationMesh.triangles;
-            for(int offset = 0; offset < t.Count() - 2; offset+=3) {
-                Vector3[] v = triangulationMesh.vertices;
-                List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
-                    (v[t[offset]], v[t[offset + 1]]),
-                    (v[t[offset + 1]], v[t[offset + 2]]),
-                    (v[t[offset + 2]], v[t[offset]]),
-                };
-                foreach((Vector3 start, Vector3 end) in edges) {
-                    Edge e = new Edge(start, end);
-                    e.DebugDraw();
-                }
+            foreach(GameEdge edge in triangulationGameEdges) {
+                edge.show = showTriangulationEdges;
             }
         }
     }
@@ -99,9 +90,8 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(Vector2 vector)
     {
-        Debug.Log(polygonVertex);
         PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
-        vertex.gameObject.name = "Polygon Vertex " + vertices.Count;
+        vertex.gameObject.name = "Vertex " + vector;
         return Add(vertex);
     }
 
@@ -158,13 +148,26 @@ public class Polygon : MonoBehaviour
         }
     }
 
-    // Assign various helper pointers to edges and vertices.
-    // Complexity: 
-    private void AssignVertexLeftEdges()
+    private void CreateTriangulationEdges()
     {
-        // Assign left edges to vertices, and helpers to edges.
-        // Use MakeMonotone algorithm from book (p.53).
-        // https://stackoverflow.com/questions/64908672/sweep-line-polygon-triangulation-how-to-find-edge-left-to-current-vertex
+        Material mat = new Material(Shader.Find("Sprites/Default"));
+        mat.color = new Color(1f, 1f, 1f, 0.5f);
+        Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
+
+        int[] t = triangulationMesh.triangles;
+        for(int offset = 0; offset < t.Count() - 2; offset+=3) {
+            Vector3[] v = triangulationMesh.vertices;
+            List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
+                (v[t[offset]], v[t[offset + 1]]),
+                (v[t[offset + 1]], v[t[offset + 2]]),
+                (v[t[offset + 2]], v[t[offset]]),
+            };
+            foreach((Vector3 start, Vector3 end) in edges) {
+                GameEdge gameEdge = GameEdge.Create(gameObject, start, end);
+                gameEdge.color = Color.red;
+                this.triangulationGameEdges.Add(gameEdge);
+            }
+        }
     }
 
     // To determine on which side of the edges the polygon lies, we find out CW or CCW direction using the sum over the edges.
@@ -195,6 +198,8 @@ public class Polygon : MonoBehaviour
         List<Vector2> vector2s = vertices.Select(v => v.ToVector()).ToList();
 
         triangulationMesh = Triangulator.Triangulate(new Polygon2D(vector2s)).CreateMesh();
+
+        CreateTriangulationEdges();
     }
 
     // Merge a polygon with another one.
