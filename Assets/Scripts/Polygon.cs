@@ -50,6 +50,13 @@ public class Polygon : MonoBehaviour
     [SerializeField]
     private bool showTriangulationEdges = false;
 
+    [SerializeField]
+    private bool showBackgroundColor = false;
+
+    [SerializeField]
+    private Color backgroundColor = new Color(1f, 1f, 1f, 0.5f);
+
+
     void Awake()
     {
         //
@@ -75,6 +82,10 @@ public class Polygon : MonoBehaviour
             foreach(GameEdge edge in triangulationGameEdges) {
                 edge.show = showTriangulationEdges;
             }
+        }
+
+        if(showBackgroundColor) {
+            DrawBackground(backgroundColor);
         }
     }
 
@@ -147,13 +158,18 @@ public class Polygon : MonoBehaviour
             }
         }
     }
+    
+    private void DrawBackground(Color color)
+    {
+        if(triangulationMesh) {
+            Material mat = new Material(Shader.Find("Sprites/Default"));
+            mat.color = color;
+            Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
+        }
+    }
 
     private void CreateTriangulationEdges()
     {
-        Material mat = new Material(Shader.Find("Sprites/Default"));
-        mat.color = new Color(1f, 1f, 1f, 0.5f);
-        Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
-
         int[] t = triangulationMesh.triangles;
         for(int offset = 0; offset < t.Count() - 2; offset+=3) {
             Vector3[] v = triangulationMesh.vertices;
