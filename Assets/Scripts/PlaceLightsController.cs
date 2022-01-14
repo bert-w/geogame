@@ -35,6 +35,8 @@ public class PlaceLightsController : MonoBehaviour
 
     private UnionSweepLine unionSweepLine = new UnionSweepLine();
 
+    private ContourPolygon contourPolygon;
+
     public Text percentageText;
 
     private float coverPercentage = 0f;
@@ -68,7 +70,7 @@ public class PlaceLightsController : MonoBehaviour
         GenerateVisibilityPolygon();
         if (Input.GetButtonDown("Fire1")){
             visibilityPolygonList.Add(CreateNewVisibilityPolygon());
-            visibilityPolygonList = MergeVisibilityPolygons(visibilityPolygonList);
+            MergeVisibilityPolygons(visibilityPolygonList);
         }
     }
 
@@ -158,15 +160,22 @@ public class PlaceLightsController : MonoBehaviour
         }
         newVis.Add(visibilityPolygonEdges.First().start);
 
-        RemoveDuplicate(newVis);
+        RemoveDuplicate(newVis, mPos);
 
         return newVis;
     }
 
-    void RemoveDuplicate(Polygon pol)
+
+    /// <summary>
+    ///  removes duplicate vertices
+    ///  sorts the in order of polar coordinates
+    /// </summary>
+    /// <param name="pol"></param>
+    void RemoveDuplicate(Polygon pol, Vector2 mPos)
     {
         List<int> dltVertices = new List<int>();
 
+        // looking for duplicate vertices
         for (int i = 0; i < pol.vertices.Count; i++)
         {
             for (int j = 0; j < i; j++)
@@ -179,12 +188,17 @@ public class PlaceLightsController : MonoBehaviour
             }
         }
 
-        Debug.Log("Removed vertices: " + dltVertices.Count);
+        //Debug.Log("Removed vertices: " + dltVertices.Count);
 
+
+        // removing duplicate vertices
         foreach (var item in dltVertices.OrderByDescending(v => v))
         {
             pol.vertices.RemoveAt(item);
         }
+
+        // sorting by polar coordinate angle
+        pol.vertices = pol.vertices.OrderBy(o => PolarCoordinateBuilder.Build(o.ToVector(), mPos).y).ToList();
     }
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
     private List<Event> GenerateEventQueue(Vector3 mPos)
@@ -355,34 +369,30 @@ public class PlaceLightsController : MonoBehaviour
     // merges currently existing visibility polygons with the latest polygon
     // can be used both for updating the polygons to be drawn and 
     // placing a new light
-    public List<Polygon> MergeVisibilityPolygons(List<Polygon> visibilityPolygonList)
+    public void MergeVisibilityPolygons(List<Polygon> visibilityPolygonList)
     {
 
         ICollection<Polygon2D> pol2dCol = new List<Polygon2D>();
-        List<Polygon> newVisPoly = new List<Polygon>();
         foreach (var item in visibilityPolygonList)
         {
             pol2dCol.Add(ChangePolToPol2D(item));
         }
 
-        ContourPolygon mergedVisibilityPolygon = (ContourPolygon)unionSweepLine.Union(pol2dCol);
+        contourPolygon = (ContourPolygon)unionSweepLine.Union(pol2dCol);
 
         // something seems to go wrong here
 
-        coverPercentage = mergedVisibilityPolygon.Area / challengePolygonArea;
+        coverPercentage = contourPolygon.Area / challengePolygonArea;
 
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
 
-        foreach (var item in mergedVisibilityPolygon.Contours)
+        /*foreach (var item in mergedVisibilityPolygon.Contours)
         {
             var poly = ChangeContourToPol(item);
             RemoveDuplicate(poly);
-            newVisPoly.Add(poly);
-        }
+        }*/
             
-
-        return newVisPoly;
-
+        
 
 
     }
