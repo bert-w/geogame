@@ -40,6 +40,11 @@ public class Polygon : MonoBehaviour
     [SerializeField]
     private bool showTriangulationEdges = false;
 
+    void Awake()
+    {
+        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+    }
+
     void Start()
     {
         polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
@@ -82,10 +87,7 @@ public class Polygon : MonoBehaviour
         }
     }
 
-    private void Awake()
-    {
-        //
-    }
+    
 
     public PolygonVertex Add(PolygonVertex v)
     {
@@ -97,6 +99,7 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(Vector2 vector)
     {
+        Debug.Log(polygonVertex);
         PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
         vertex.gameObject.name = "Polygon Vertex " + vertices.Count;
         return Add(vertex);

@@ -83,7 +83,7 @@ public class Event : IComparable
                 return -1;
             }
 
-            Debug.Log("No intersection found");
+            //Debug.Log("No intersection found");
             if (StartDistance == otherEvent.StartDistance)
             {
                 return EndDistance.CompareTo(otherEvent.EndDistance);

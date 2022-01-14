@@ -92,6 +92,6 @@ public class PolygonVertex : MonoBehaviour
     // @TODO check if this is correct
     public bool IsEqual(PolygonVertex other)
     {
-        return ((x == other.x) && (y == other.y) && (prevEdge.IsEqual(other.prevEdge)) && (nextEdge.IsEqual(other.nextEdge)));
+        return ((x == other.x) && (y == other.y));
     }
 }

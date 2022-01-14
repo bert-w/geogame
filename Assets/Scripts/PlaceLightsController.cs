@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEngine;
 using Util.Geometry.Polygon;
 using Util.Algorithms.Polygon;
+using Util.Geometry.Contour;
+using UnityEngine.UI;
 
 public class PlaceLightsController : MonoBehaviour
 {
@@ -33,6 +35,10 @@ public class PlaceLightsController : MonoBehaviour
 
     private UnionSweepLine unionSweepLine = new UnionSweepLine();
 
+    public Text percentageText;
+
+    private float coverPercentage = 0f;
+    private float challengePolygonArea;
 
     // Start is called before the first frame update
     void Start()
@@ -47,6 +53,11 @@ public class PlaceLightsController : MonoBehaviour
         visibilityPolygonLine = GetComponent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
         visibilityPolygonLine.widthMultiplier = LineWidth;
+
+        percentageText.text = string.Format("{0:P2}", (coverPercentage));
+
+        // @ TODO calculate this by triangulation
+        challengePolygonArea = ChangePolToPol2D(challengePolygon).Area;
     }
 
     // Update is called once per frame
@@ -63,11 +74,25 @@ public class PlaceLightsController : MonoBehaviour
 
     Polygon ChangePol2DToPol(Polygon2D pol2d)
     {
-        Polygon pol = new Polygon();
+        Polygon pol = new GameObject().AddComponent<Polygon>();
+        pol.transform.SetParent(transform);
         foreach (var item in pol2d.Vertices)
         {
             pol.vertices.Add(new PolygonVertex { x = item.x, y = item.y });
         }
+        return pol;
+    }
+
+    Polygon ChangeContourToPol(Contour contour)
+    {
+        Polygon pol = new GameObject().AddComponent<Polygon>();
+        pol.transform.SetParent(transform);
+
+        foreach (var item in contour.Vertices)
+        {
+            pol.Add(new PolygonVertex { x = (float)item.x, y = (float)item.y });
+        }
+
         return pol;
     }
 
@@ -120,7 +145,8 @@ public class PlaceLightsController : MonoBehaviour
     // @TODO update this with latest code
     Polygon CreateNewVisibilityPolygon()
     {
-        Polygon newVis = new Polygon();
+        Polygon newVis = new GameObject().AddComponent<Polygon>();
+        newVis.transform.SetParent(transform);
         Vector3 mPos = GetMousePosition();
 
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
@@ -132,7 +158,33 @@ public class PlaceLightsController : MonoBehaviour
         }
         newVis.Add(visibilityPolygonEdges.First().start);
 
+        RemoveDuplicate(newVis);
+
         return newVis;
+    }
+
+    void RemoveDuplicate(Polygon pol)
+    {
+        List<int> dltVertices = new List<int>();
+
+        for (int i = 0; i < pol.vertices.Count; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (pol.vertices[i] == pol.vertices[j])
+                {
+                    dltVertices.Add(i);
+                    break;
+                }
+            }
+        }
+
+        Debug.Log("Removed vertices: " + dltVertices.Count);
+
+        foreach (var item in dltVertices.OrderByDescending(v => v))
+        {
+            pol.vertices.RemoveAt(item);
+        }
     }
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
     private List<Event> GenerateEventQueue(Vector3 mPos)
@@ -313,26 +365,21 @@ public class PlaceLightsController : MonoBehaviour
             pol2dCol.Add(ChangePolToPol2D(item));
         }
 
-        var mergedVisibilityPolygon = unionSweepLine.Union(pol2dCol);
+        ContourPolygon mergedVisibilityPolygon = (ContourPolygon)unionSweepLine.Union(pol2dCol);
 
-        if (mergedVisibilityPolygon.GetType() == typeof(MultiPolygon2D)){
-            MultiPolygon2D mul = (MultiPolygon2D)mergedVisibilityPolygon;
-            foreach (var item in mul.Polygons)
-            {
-                newVisPoly.Add(ChangePol2DToPol(item));
-            }
+        // something seems to go wrong here
+
+        coverPercentage = mergedVisibilityPolygon.Area / challengePolygonArea;
+
+        percentageText.text = string.Format("{0:P2}", (coverPercentage));
+
+        foreach (var item in mergedVisibilityPolygon.Contours)
+        {
+            var poly = ChangeContourToPol(item);
+            RemoveDuplicate(poly);
+            newVisPoly.Add(poly);
+        }
             
-        }
-        else if (mergedVisibilityPolygon.GetType() == typeof(Polygon2D))
-        {
-            Polygon2D pol2d = (Polygon2D)mergedVisibilityPolygon;
-            newVisPoly.Add(ChangePol2DToPol(pol2d));
-        }
-        else
-        {
-            Debug.Log("Failed");
-            Debug.Log(mergedVisibilityPolygon.GetType());
-        }
 
         return newVisPoly;
 
