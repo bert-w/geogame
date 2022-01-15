@@ -100,6 +100,10 @@ public class GameEventController : MonoBehaviour
         challengePolygon.name = "Challenge Polygon";
         challengePolygon.transform.SetParent(transform);
         edgeList.Clear();
+        polygonLine = GetComponent<LineRenderer>();
+        polygonLine.positionCount = 0;
+        polygonLine.material.color = LineColor;
+        polygonLine.widthMultiplier = LineWidth;
     }
     /*
     private void Awake()
@@ -114,10 +118,7 @@ public class GameEventController : MonoBehaviour
     {
         
 
-        polygonLine = GetComponent<LineRenderer>();
-        polygonLine.positionCount = 0;
-        polygonLine.material.color = LineColor;
-        polygonLine.widthMultiplier = LineWidth;
+
     }
 
     // Update is called once per frame

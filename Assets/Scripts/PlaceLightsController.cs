@@ -12,7 +12,8 @@ public class PlaceLightsController : MonoBehaviour
 {
     public Camera mainCam;
 
-    public GameObject mouseLight;
+    private GameObject mouseLight;
+    public GameObject mouseLightPrefab;
 
     public List<PolygonVertex> lights;
 
@@ -52,7 +53,7 @@ public class PlaceLightsController : MonoBehaviour
     // Start is called before the first frame update
     private void OnEnable()
     {
-        mouseLight = Instantiate(mouseLight, transform);
+        mouseLight = Instantiate(mouseLightPrefab, transform);
         mouseLight.name = "Mouse Light";
         mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
 
@@ -492,7 +493,7 @@ public class PlaceLightsController : MonoBehaviour
             // destroy all children
             foreach (Transform child in transform)
             {
-                if(child.gameObject.name != "Mouse Light")
+                //if(child.gameObject.name != "Mouse Light")
                     Destroy(child.gameObject);
             }
 

@@ -1241,7 +1241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCam: {fileID: 1953040421}
-  mouseLight: {fileID: 6504040600611331191, guid: 858431fab454ef54c91c493808641a2e,
+  mouseLightPrefab: {fileID: 6504040600611331191, guid: 858431fab454ef54c91c493808641a2e,
     type: 3}
   lights: []
   visibilityPolygon: {fileID: 0}
