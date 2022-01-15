@@ -65,7 +65,7 @@ public class PlaceLightsController : MonoBehaviour
         visibilityPolygon = new GameObject().AddComponent<Polygon>();
         visibilityPolygon.name = "Visibility Polygon";
         visibilityPolygon.transform.SetParent(transform);
-        visibilityPolygon.backgroundColor = new Color(1f, 1f, 0f, 0.2f);
+        visibilityPolygon.BackgroundColor = new Color(1f, 1f, 0f, 0.2f);
         visibilityPolygon.showBackgroundColor = true;
         visibilityPolygonLine = GetComponent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
@@ -121,7 +121,7 @@ public class PlaceLightsController : MonoBehaviour
         pol.transform.SetParent(transform);
         foreach (var item in pol2d.Vertices)
         {
-            pol.vertices.Add(new PolygonVertex { x = item.x, y = item.y });
+            pol.Vertices.Add(new PolygonVertex { x = item.x, y = item.y });
         }
         return pol;
     }
@@ -142,7 +142,7 @@ public class PlaceLightsController : MonoBehaviour
     Polygon2D ChangePolToPol2D(Polygon pol)
     {
         var vectorList = new List<Vector2>();
-        foreach (var vert in pol.vertices)
+        foreach (var vert in pol.Vertices)
         {
             vectorList.Add(vert.ToVector());
         }
@@ -189,12 +189,12 @@ public class PlaceLightsController : MonoBehaviour
         // RemoveDuplicate(visibilityPolygon, mPos);
 
 
-        visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v =>
+        visibilityPolygonLine.SetPositions(visibilityPolygon.Vertices.Select(v =>
         {
             return new Vector3(v.x, v.y, 0);
         }).ToArray());
 
-        visibilityPolygonLine.positionCount = visibilityPolygon.vertices.Count;
+        visibilityPolygonLine.positionCount = visibilityPolygon.Vertices.Count;
 
         visibilityPolygon.Completed = true;
     }
@@ -250,11 +250,11 @@ public class PlaceLightsController : MonoBehaviour
         List<int> dltVertices = new List<int>();
 
         // looking for duplicate vertices
-        for (int i = 0; i < pol.vertices.Count; i++)
+        for (int i = 0; i < pol.Vertices.Count; i++)
         {
             for (int j = 0; j < i; j++)
             {
-                if (pol.vertices[i] == pol.vertices[j])
+                if (pol.Vertices[i] == pol.Vertices[j])
                 {
                     dltVertices.Add(i);
                     break;
@@ -268,26 +268,26 @@ public class PlaceLightsController : MonoBehaviour
         // removing duplicate vertices
         foreach (var item in dltVertices.OrderByDescending(v => v))
         {
-            pol.vertices.RemoveAt(item);
+            pol.Vertices.RemoveAt(item);
         }
 
         // sorting by polar coordinate angle, then by distance to mPos
         // does not work perfectly and needs to be changed
-        pol.vertices = pol.vertices.OrderBy(o => PolarCoordinateBuilder.Build(o.ToVector(), mPos).y).ToList();
+        pol.Vertices = pol.Vertices.OrderBy(o => PolarCoordinateBuilder.Build(o.ToVector(), mPos).y).ToList();
     }
     // Generate an event queue (radial sweep) for the visibility polygon from point mPos.
     private List<Event> GenerateEventQueue(Vector3 mPos)
     {
         var unsortedQueue = new List<Event>();
 
-        var tuple = SafeVertexFinder.Find(challengePolygon.edges, mPos);
+        var tuple = SafeVertexFinder.Find(challengePolygon.Edges, mPos);
         var startVertex = tuple.Item2;
         var startEdge = tuple.Item1;
 
         float minDegrees = PolarCoordinateBuilder.Build(startVertex, mPos).y;
 
         int edgeId = 0;
-        foreach (var edge in challengePolygon.edges)
+        foreach (var edge in challengePolygon.Edges)
         {
             // TODO dubbel check x and y
             var Polar1 = PolarCoordinateBuilder.Build(mPos, edge.start);
@@ -471,7 +471,7 @@ public class PlaceLightsController : MonoBehaviour
             //Debug.Log("%:" + coverPercentage);
             challengeFinished = true;
             // @ TODO change way score is calculated
-            var score = challengePolygon.vertices.Count / visibilityPolygonList.Count;
+            var score = challengePolygon.Vertices.Count / visibilityPolygonList.Count;
             if (playerTurnString == "Player 1's turn")
             {
                 PlayerScore.player1Score += score;

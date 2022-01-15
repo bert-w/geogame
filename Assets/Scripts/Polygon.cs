@@ -11,23 +11,23 @@ public class Polygon : MonoBehaviour
 {
     public enum _Direction {None, CW, CCW}
 
-    public Mesh triangulationMesh;
+    private Mesh _triangulationMesh;
 
     [field: SerializeField]
-    public List<PolygonVertex> vertices { get; set; } = new List<PolygonVertex>();
+    public List<PolygonVertex> Vertices { get; set; } = new List<PolygonVertex>();
 
-    private GameObject polygonVertex;
+    private GameObject _polygonVertex;
 
     /// <summary>
     /// The edges of the polygon.
     /// </summary>
     [field: SerializeField]
-    public List<Edge> edges { get; set; } = new List<Edge>();
+    public List<Edge> Edges { get; set; } = new List<Edge>();
 
     /// <summary>
     /// The edges of the triangulation of the polygon.
     /// </summary>
-    public List<GameEdge> triangulationGameEdges { get; set; } = new List<GameEdge>();
+    public List<GameEdge> TriangulationGameEdges { get; set; } = new List<GameEdge>();
 
     /// <summary>
     /// Determines if the polygon has been completed.
@@ -42,22 +42,22 @@ public class Polygon : MonoBehaviour
     private _Direction _direction = _Direction.None;
 
     [SerializeField]
-    private bool showVertexTypeColor = false;
+    public bool ShowVertexTypeColor = false;
 
     [SerializeField]
-    private bool showTriangulationEdges = false;
+    public bool ShowTriangulationEdges = false;
 
     [SerializeField]
     public bool showBackgroundColor { get; set; } = false;
 
     [SerializeField]
-    public Color backgroundColor = new Color(1f, 1f, 1f, 0.5f);
+    public Color BackgroundColor = new Color(1f, 1f, 1f, 0.5f);
 
 
     void Awake()
     {
         // NOTE: im not sure why we need this repeated here, some lifecycle issue.
-        polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+        _polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
     }
 
     void Start()
@@ -69,21 +69,21 @@ public class Polygon : MonoBehaviour
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.T)) {
-            showVertexTypeColor = !showVertexTypeColor;
-            foreach(PolygonVertex vertex in vertices) {
-                vertex.showTypeColor = showVertexTypeColor;
+            ShowVertexTypeColor = !ShowVertexTypeColor;
+            foreach(PolygonVertex vertex in Vertices) {
+                vertex.showTypeColor = ShowVertexTypeColor;
             }
         }
 
         if(Input.GetKeyDown(KeyCode.E)) {
-            showTriangulationEdges = !showTriangulationEdges;
-            foreach(GameEdge edge in triangulationGameEdges) {
-                edge.show = showTriangulationEdges;
+            ShowTriangulationEdges = !ShowTriangulationEdges;
+            foreach(GameEdge edge in TriangulationGameEdges) {
+                edge.show = ShowTriangulationEdges;
             }
         }
 
         if(showBackgroundColor) {
-            DrawBackground(backgroundColor);
+            DrawBackground(BackgroundColor);
         }
     }
 
@@ -91,7 +91,7 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(PolygonVertex v)
     {
-        vertices.Add(v);
+        Vertices.Add(v);
         // Recalculate direction.
         _direction = Direction;
         return v;
@@ -99,17 +99,17 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex Add(Vector2 vector)
     {
-        PolygonVertex vertex = Instantiate(polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
+        PolygonVertex vertex = Instantiate(_polygonVertex, vector, Quaternion.identity, transform).GetComponent<PolygonVertex>();
         vertex.gameObject.name = "Vertex " + vector;
         return Add(vertex);
     }
 
     public void empty()
     {
-        for(var i = 0; i < vertices.Count; i++) {
-            Destroy(vertices[i].gameObject);
+        for(var i = 0; i < Vertices.Count; i++) {
+            Destroy(Vertices[i].gameObject);
         }
-        vertices.Clear();
+        Vertices.Clear();
     }
 
     
@@ -131,11 +131,11 @@ public class Polygon : MonoBehaviour
     // Complexity: n
     private void AssignVertexTypes()
     {
-        for(var i = 0; i < vertices.Count; i++)
+        for(var i = 0; i < Vertices.Count; i++)
         {
-            PolygonVertex e = vertices[i];
-            PolygonVertex prev = i == 0 ? vertices[vertices.Count - 1] : vertices[i - 1];
-            PolygonVertex next = i != vertices.Count - 1 ? vertices[i + 1] : vertices[0];
+            PolygonVertex e = Vertices[i];
+            PolygonVertex prev = i == 0 ? Vertices[Vertices.Count - 1] : Vertices[i - 1];
+            PolygonVertex next = i != Vertices.Count - 1 ? Vertices[i + 1] : Vertices[0];
 
             float angle = Vector2.SignedAngle(new Edge(e, prev).ToVector(), new Edge(e, next).ToVector());
             if(angle < 0) {
@@ -160,21 +160,21 @@ public class Polygon : MonoBehaviour
     
     private void DrawBackground(Color color)
     {
-        if(triangulationMesh) {
+        if(_triangulationMesh) {
             Material mat = new Material(Shader.Find("Sprites/Default"));
             mat.color = color;
-            Graphics.DrawMesh(triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
+            Graphics.DrawMesh(_triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
         }
     }
 
     private void CreateTriangulationEdges()
     {
-        int[] t = triangulationMesh.triangles;
+        int[] t = _triangulationMesh.triangles;
 
-        triangulationGameEdges.Clear();
+        TriangulationGameEdges.Clear();
 
         for(int offset = 0; offset < t.Count() - 2; offset+=3) {
-            Vector3[] v = triangulationMesh.vertices;
+            Vector3[] v = _triangulationMesh.vertices;
             List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
                 (v[t[offset]], v[t[offset + 1]]),
                 (v[t[offset + 1]], v[t[offset + 2]]),
@@ -183,7 +183,7 @@ public class Polygon : MonoBehaviour
             foreach((Vector3 start, Vector3 end) in edges) {
                 GameEdge gameEdge = GameEdge.Create(gameObject, start, end);
                 gameEdge.color = Color.red;
-                triangulationGameEdges.Add(gameEdge);
+                TriangulationGameEdges.Add(gameEdge);
             }
         }
     }
@@ -193,9 +193,9 @@ public class Polygon : MonoBehaviour
     {
         get {
             float sum = 0;
-            for(var i = 0; i < vertices.Count; i++) {
-                Vector2 next = i < vertices.Count - 1 ? vertices[i + 1].ToVector() : new Vector2(0, 0);
-                Vector2 curr = vertices[i].ToVector();
+            for(var i = 0; i < Vertices.Count; i++) {
+                Vector2 next = i < Vertices.Count - 1 ? Vertices[i + 1].ToVector() : new Vector2(0, 0);
+                Vector2 curr = Vertices[i].ToVector();
                 sum += (next.x - curr.x)*(next.y + curr.y);
             }
             _direction = sum < 0 ? _Direction.CCW : _Direction.CW;
@@ -210,12 +210,12 @@ public class Polygon : MonoBehaviour
     public void Triangulate()
     {
         if(Direction == _Direction.CCW) {
-            vertices.Reverse();
+            Vertices.Reverse();
         }
 
-        List<Vector2> vector2s = vertices.Select(v => v.ToVector()).ToList();
+        List<Vector2> vector2s = Vertices.Select(v => v.ToVector()).ToList();
 
-        triangulationMesh = Triangulator.Triangulate(new Polygon2D(vector2s)).CreateMesh();
+        _triangulationMesh = Triangulator.Triangulate(new Polygon2D(vector2s)).CreateMesh();
 
         CreateTriangulationEdges();
     }
@@ -228,14 +228,14 @@ public class Polygon : MonoBehaviour
 
     public PolygonVertex PolygonYMax()
     {
-        var maxY = this.vertices[0].y;
-        var maxVertex = this.vertices[0];
-        for (int i = 0; i < this.vertices.Count; i++)
+        var maxY = this.Vertices[0].y;
+        var maxVertex = this.Vertices[0];
+        for (int i = 0; i < this.Vertices.Count; i++)
         {
-            if (vertices[i].y >= maxY)
+            if (Vertices[i].y >= maxY)
             {
-                maxY = vertices[i].y;
-                maxVertex = vertices[i];
+                maxY = Vertices[i].y;
+                maxVertex = Vertices[i];
             }
         }
         return maxVertex;

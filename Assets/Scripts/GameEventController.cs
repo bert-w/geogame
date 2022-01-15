@@ -51,16 +51,16 @@ public class GameEventController : MonoBehaviour
                 polygonLine.SetPosition(polygonLine.positionCount - 1, snapToVertex.transform.position); // fix location of previous line
                 polygonLine.positionCount++;
                 polygonLine.SetPosition(polygonLine.positionCount - 1, snapToVertex.transform.position); 
-                newEdge = new Edge(p.vertices[p.vertices.Count - 1], snapToVertex);
+                newEdge = new Edge(p.Vertices[p.Vertices.Count - 1], snapToVertex);
                 edgeList.Add(newEdge);
                 // create references in vertices to edge
-                p.vertices[p.vertices.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
+                p.Vertices[p.Vertices.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
                 snapToVertex.prevEdge = newEdge;
 
                 snapToVertex.Color = null;
                 snapToVertex.Scale = null;
 
-                challengePolygon.edges = edgeList;
+                challengePolygon.Edges = edgeList;
                 challengePolygon.Completed = true;
                 
                 // Pass current vertexlist to the placeLightsController and activate it.
@@ -76,11 +76,11 @@ public class GameEventController : MonoBehaviour
             // create new vertex
             challengePolygon.Add(mousePos);
             // create new edge
-            newEdge = new Edge(p.vertices[p.vertices.Count -2], p.vertices[p.vertices.Count - 1]);
+            newEdge = new Edge(p.Vertices[p.Vertices.Count -2], p.Vertices[p.Vertices.Count - 1]);
             edgeList.Add(newEdge);
             // create references in vertices to edge
-            p.vertices[p.vertices.Count - 2].nextEdge = newEdge;
-            p.vertices[p.vertices.Count - 1].prevEdge = newEdge;
+            p.Vertices[p.Vertices.Count - 2].nextEdge = newEdge;
+            p.Vertices[p.Vertices.Count - 1].prevEdge = newEdge;
             return;
         }
         else
@@ -123,7 +123,7 @@ public class GameEventController : MonoBehaviour
     void Update()
     {
         //Debug.Log("vertices: " + challengePolygon.vertices.Count);
-        PolygonVertex snapToVertex = challengePolygon.vertices.Count > 0 ? isCloseToVertex(challengePolygon.vertices[0], 200f) : null;
+        PolygonVertex snapToVertex = challengePolygon.Vertices.Count > 0 ? isCloseToVertex(challengePolygon.Vertices[0], 200f) : null;
         if (Input.GetButtonDown("Fire1")){
             OnClick(snapToVertex);
         }
@@ -186,8 +186,8 @@ public class GameEventController : MonoBehaviour
 
         float ax = currPos.x;
         float ay = currPos.y;
-        float bx = p.vertices[p.vertices.Count - 1].GetComponent<PolygonVertex>().x;
-        float by = p.vertices[p.vertices.Count - 1].GetComponent<PolygonVertex>().y;
+        float bx = p.Vertices[p.Vertices.Count - 1].GetComponent<PolygonVertex>().x;
+        float by = p.Vertices[p.Vertices.Count - 1].GetComponent<PolygonVertex>().y;
         for (int i = 0; i < edgeList.Count; i++)
         {
             var currEdge = edgeList[i];
