@@ -27,6 +27,8 @@ public class PlaceLightsController : MonoBehaviour
 
     public GameEventController gameEventController;
 
+    public GameObject gameOverScreen;
+
     // List with "confirmed" visibility polygons
     public List<Polygon> visibilityPolygonList;
     // List with polygons to visualize, I.e. while still moving the light
@@ -170,7 +172,7 @@ public class PlaceLightsController : MonoBehaviour
             {
                 if (edge.end != previous)
                 {
-                    Debug.Log(previous.ToString() + edge.ToString());
+                    //Debug.Log(previous.ToString() + edge.ToString());
                 }
                 previous = edge.start;
             }
@@ -227,7 +229,7 @@ public class PlaceLightsController : MonoBehaviour
             {
                 if (edge.end != previous)
                 {
-                    Debug.Log(previous.ToString() + edge.ToString());
+                    //Debug.Log(previous.ToString() + edge.ToString());
                 }
                 previous = edge.start;
             }
@@ -471,7 +473,7 @@ public class PlaceLightsController : MonoBehaviour
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
         if (coverPercentage >=0.99999f)
         {
-            Debug.Log("%:" + coverPercentage);
+            //Debug.Log("%:" + coverPercentage);
             challengeFinished = true;
             // @ TODO change way score is calculated
             var score = challengePolygon.vertices.Count / visibilityPolygonList.Count;
@@ -485,17 +487,25 @@ public class PlaceLightsController : MonoBehaviour
                 PlayerScore.player2Score += score;
                 scorePlayer2.text = string.Format("Player 2: {0}", PlayerScore.player2Score);
             }
-            gameEventController.enabled = true;
             // Disable this controller.
-            Destroy(challengePolygon.gameObject);
-            visibilityPolygonList.Clear();
-            visibilityPolygonLine.positionCount = 0;
             // destroy all children
             foreach (Transform child in transform)
             {
                 //if(child.gameObject.name != "Mouse Light")
                     Destroy(child.gameObject);
             }
+            Destroy(challengePolygon.gameObject);
+            visibilityPolygonList.Clear();
+            visibilityPolygonLine.positionCount = 0;
+
+            if (PlayerScore.CheckPlayerWon())
+            {
+                Debug.Log(PlayerScore.winningPlayer);
+                gameOverScreen.SetActive(true);
+            }
+            else
+                gameEventController.enabled = true;
+
 
             enabled = false;
             return;

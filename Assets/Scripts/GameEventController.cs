@@ -88,7 +88,7 @@ public class GameEventController : MonoBehaviour
         else
         {
             GetComponent<AudioSource>().PlayOneShot(audioClipError, 0.3f);
-            Debug.Log("Not Possible!");
+           // Debug.Log("Not Possible!");
         }
     }
 
@@ -124,7 +124,7 @@ public class GameEventController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log("vertices: " + challengePolygon.vertices.Count);
+        //Debug.Log("vertices: " + challengePolygon.vertices.Count);
         PolygonVertex snapToVertex = challengePolygon.vertices.Count > 0 ? isCloseToVertex(challengePolygon.vertices[0], 200f) : null;
         if (Input.GetButtonDown("Fire1")){
             OnClick(snapToVertex);
@@ -216,7 +216,7 @@ public class GameEventController : MonoBehaviour
     {
         bool bool1 = CounterClockWise(ax, ay, cx, cy, dx, dy) != CounterClockWise(bx, by, cx, cy, dx, dy);
         bool bool2 = CounterClockWise(ax, ay, bx, by, cx, cy) != CounterClockWise(ax, ay, bx, by, dx, dy);
-        Debug.Log((bool1, bool2));
+        //Debug.Log((bool1, bool2));
         return (bool1 & bool2);
     }
 }

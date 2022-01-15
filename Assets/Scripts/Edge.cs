@@ -88,7 +88,7 @@ public class Edge
 
     public void DebugDraw(Color color, float duration)
     {
-        Debug.Log("[Edge] " + start + " - " + end);
+        //Debug.Log("[Edge] " + start + " - " + end);
         Debug.DrawLine(start, end, color, duration);
     }
 
