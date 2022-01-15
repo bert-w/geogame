@@ -65,6 +65,8 @@ public class PlaceLightsController : MonoBehaviour
         visibilityPolygon = new GameObject().AddComponent<Polygon>();
         visibilityPolygon.name = "Visibility Polygon";
         visibilityPolygon.transform.SetParent(transform);
+        visibilityPolygon.backgroundColor = new Color(1f, 1f, 0f, 0.2f);
+        visibilityPolygon.showBackgroundColor = true;
         visibilityPolygonLine = GetComponent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
         visibilityPolygonLine.widthMultiplier = LineWidth;
@@ -194,14 +196,7 @@ public class PlaceLightsController : MonoBehaviour
 
         visibilityPolygonLine.positionCount = visibilityPolygon.vertices.Count;
 
-
-
-        visibilityPolygon.empty();
-
-
-        List<Edge> edges = challengePolygon.edges;
-
-        visibilityPolygon.empty();
+        visibilityPolygon.Completed = true;
     }
 
 

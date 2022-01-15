@@ -29,9 +29,6 @@ public class Polygon : MonoBehaviour
     /// </summary>
     public List<GameEdge> triangulationGameEdges { get; set; } = new List<GameEdge>();
 
-    [field: SerializeField]
-    public List<Edge> triangulation { get; set; } = new List<Edge>();
-
     /// <summary>
     /// Determines if the polygon has been completed.
     /// </summary>
@@ -51,10 +48,10 @@ public class Polygon : MonoBehaviour
     private bool showTriangulationEdges = false;
 
     [SerializeField]
-    private bool showBackgroundColor = false;
+    public bool showBackgroundColor { get; set; } = false;
 
     [SerializeField]
-    private Color backgroundColor = new Color(1f, 1f, 1f, 0.5f);
+    public Color backgroundColor = new Color(1f, 1f, 1f, 0.5f);
 
 
     void Awake()
@@ -125,6 +122,7 @@ public class Polygon : MonoBehaviour
             if(value) {
                 // When completed, calculate the vertex types.
                 AssignVertexTypes();
+                Triangulate();
             }
         }
     }
@@ -172,6 +170,9 @@ public class Polygon : MonoBehaviour
     private void CreateTriangulationEdges()
     {
         int[] t = triangulationMesh.triangles;
+
+        triangulationGameEdges.Clear();
+
         for(int offset = 0; offset < t.Count() - 2; offset+=3) {
             Vector3[] v = triangulationMesh.vertices;
             List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
@@ -182,7 +183,7 @@ public class Polygon : MonoBehaviour
             foreach((Vector3 start, Vector3 end) in edges) {
                 GameEdge gameEdge = GameEdge.Create(gameObject, start, end);
                 gameEdge.color = Color.red;
-                this.triangulationGameEdges.Add(gameEdge);
+                triangulationGameEdges.Add(gameEdge);
             }
         }
     }
