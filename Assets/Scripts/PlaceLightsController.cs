@@ -19,7 +19,9 @@ public class PlaceLightsController : MonoBehaviour
 
     private List<PolygonVertex> eventQueue;
 
-    public Polygon visibilityPolygon;
+    public GameObject visibilityPolygonPrefab;
+    
+    Polygon visibilityPolygon;
 
     public float LineWidth;
 
@@ -62,12 +64,9 @@ public class PlaceLightsController : MonoBehaviour
         playerTurnString = playerTurnString == "Player 1's turn" ? "Player 2's turn" : "Player 1's turn";
         playerTurn.text = playerTurnString;
 
-        visibilityPolygon = new GameObject().AddComponent<Polygon>();
+        visibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
         visibilityPolygon.name = "Visibility Polygon";
-        visibilityPolygon.transform.SetParent(transform);
-        visibilityPolygon.BackgroundColor = new Color(1f, 1f, 0f, 0.2f);
-        visibilityPolygon.showBackgroundColor = true;
-        visibilityPolygonLine = GetComponent<LineRenderer>();
+        visibilityPolygonLine = visibilityPolygon.GetComponentInParent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
         visibilityPolygonLine.widthMultiplier = LineWidth;
 

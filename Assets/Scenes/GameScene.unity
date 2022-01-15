@@ -530,7 +530,8 @@ MonoBehaviour:
   LineWidth: 10
   LineColor: {r: 0, g: 0, b: 0, a: 1}
   polygonLine: {fileID: 480255767}
-  challengePolygon: {fileID: 0}
+  challengePolygonPrefab: {fileID: 3645751539672561320, guid: ceeb6b8de13202b49929b59c6ee0017f,
+    type: 3}
   audioClipClick: {fileID: 8300000, guid: 46bee6333b5de0c4083ce80b7718c42b, type: 3}
   audioClipError: {fileID: 8300000, guid: 2464d68a5ebb7ba448d1133b22646303, type: 3}
   placeLightsController: {fileID: 1527636519}
@@ -1535,7 +1536,8 @@ MonoBehaviour:
   mouseLightPrefab: {fileID: 6504040600611331191, guid: 858431fab454ef54c91c493808641a2e,
     type: 3}
   lights: []
-  visibilityPolygon: {fileID: 0}
+  visibilityPolygonPrefab: {fileID: 605377132566388493, guid: 8b2dec3c5fa613a449a1871e02342e0c,
+    type: 3}
   LineWidth: 10
   LineColor: {r: 1, g: 1, b: 0, a: 1}
   gameEventController: {fileID: 480255765}

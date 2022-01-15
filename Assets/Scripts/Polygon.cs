@@ -45,24 +45,37 @@ public class Polygon : MonoBehaviour
     public bool ShowVertexTypeColor = false;
 
     [SerializeField]
+    public Color VertexColor = new Color(0f, 0f, 0f);
+
+    [SerializeField]
+    public float VertexScale = 30f;
+
+    [SerializeField]
     public bool ShowTriangulationEdges = false;
 
     [SerializeField]
-    public bool showBackgroundColor { get; set; } = false;
+    public bool ShowBackgroundColor = false;
 
     [SerializeField]
     public Color BackgroundColor = new Color(1f, 1f, 1f, 0.5f);
 
 
+    void OnEnable()
+    {
+        Debug.Log("[Polygon] OnEnable");
+    }
+
     void Awake()
     {
-        // NOTE: im not sure why we need this repeated here, some lifecycle issue.
+        Debug.Log("[Polygon] Awake");
         _polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+        _polygonVertex.GetComponent<SpriteRenderer>().color = VertexColor;
+        _polygonVertex.transform.localScale = new Vector3(VertexScale, VertexScale, 0);
     }
 
     void Start()
     {
-        //polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
+        //
     }
     
     // Update is called once per frame
@@ -82,7 +95,7 @@ public class Polygon : MonoBehaviour
             }
         }
 
-        if(showBackgroundColor) {
+        if(ShowBackgroundColor) {
             DrawBackground(BackgroundColor);
         }
     }

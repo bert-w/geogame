@@ -14,10 +14,7 @@ public class PolygonVertex : MonoBehaviour
         {_Type.Regular, UnityEngine.Color.magenta}
     };
     
-    private readonly IDictionary<string, object> defaults = new Dictionary<string, object>(){
-        {"Color", UnityEngine.Color.black},
-        {"Scale", 30f},
-    };
+    private IDictionary<string, object> defaults = new Dictionary<string, object>(){};
 
     public Edge prevEdge;
     public Edge nextEdge;
@@ -34,24 +31,34 @@ public class PolygonVertex : MonoBehaviour
     [field: SerializeField]
     public Edge LeftHelperEdge { get; set; }
 
-    private Color _color;
+    public Color Color = new Color(0f, 0f, 0f);
 
-    private float _scale;
+    public float Scale = 30f;
 
-    private void Awake()
+    void Awake()
     {
-        // Set defaults.
-        Color = (Color) defaults["Color"];
-        Scale = (float) defaults["Scale"];
-
         x = transform.position.x;
         y = transform.position.y;
+    }
+
+    void Start()
+    {
+        // Set defaults.
+        defaults["Color"] = Color = GetComponent<SpriteRenderer>().color;
+        defaults["Scale"] = Scale = transform.localScale.x;
     }
 
     // Update is called once per frame
     void Update()
     {
-        Color = (Color) (showTypeColor ? typeColors[Type] : defaults["Color"]);
+        GetComponent<SpriteRenderer>().color = showTypeColor ? typeColors[Type] : Color;
+        transform.localScale = new Vector3(Scale, Scale, 1);
+    }
+
+    public void ResetShape()
+    {
+        Scale = (float) defaults["Scale"];
+        Color = (Color) defaults["Color"];
     }
 
     public Vector2 ToVector()
@@ -62,28 +69,6 @@ public class PolygonVertex : MonoBehaviour
     public float Distance(Vector3 to)
     {
         return Vector3.Distance(transform.position, to);
-    }
-
-    public float? Scale {
-        get {
-            return _scale;
-        }
-        set {
-            var _value = value.GetValueOrDefault((float) defaults["Scale"]);
-            transform.localScale = new Vector3(_value, _value, 1);
-            _scale = _value;
-        }
-    }
-
-    public Color? Color {
-        get {
-            return _color;
-        }
-        set {
-            var _value = value.GetValueOrDefault((Color) defaults["Color"]);
-            GetComponent<SpriteRenderer>().color = _value;
-            _color = _value;
-        }
     }
 
     // @TODO check if this is correct

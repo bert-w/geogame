@@ -14,7 +14,9 @@ public class GameEventController : MonoBehaviour
     private bool polygonStarted = false;
     public LineRenderer polygonLine;
 
-    public Polygon challengePolygon;
+    public GameObject challengePolygonPrefab;
+
+    Polygon challengePolygon;
 
     public AudioClip audioClipClick;
     public AudioClip audioClipError;
@@ -57,8 +59,7 @@ public class GameEventController : MonoBehaviour
                 p.Vertices[p.Vertices.Count - 1].GetComponent<PolygonVertex>().nextEdge = newEdge;
                 snapToVertex.prevEdge = newEdge;
 
-                snapToVertex.Color = null;
-                snapToVertex.Scale = null;
+                snapToVertex.ResetShape();
 
                 challengePolygon.Edges = edgeList;
                 challengePolygon.Completed = true;
@@ -94,35 +95,23 @@ public class GameEventController : MonoBehaviour
     private void OnEnable()
     {
         polygonStarted = false;
-        challengePolygon = new GameObject().AddComponent<Polygon>();
+        challengePolygon = Instantiate(challengePolygonPrefab, transform).GetComponent<Polygon>();
         challengePolygon.name = "Challenge Polygon";
-        challengePolygon.transform.SetParent(transform);
         edgeList.Clear();
-        polygonLine = GetComponent<LineRenderer>();
+        polygonLine = challengePolygon.GetComponentInParent<LineRenderer>();
         polygonLine.positionCount = 0;
         polygonLine.material.color = LineColor;
         polygonLine.widthMultiplier = LineWidth;
     }
-    /*
-    private void Awake()
-    {
-        polygonStarted = false;
-        challengePolygon = new GameObject().AddComponent<Polygon>();
-        challengePolygon.name = "Challenge Polygon";
-        challengePolygon.transform.SetParent(transform);
-    }*/
 
     void Start()
     {
-        
-
-
+        //
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log("vertices: " + challengePolygon.vertices.Count);
         PolygonVertex snapToVertex = challengePolygon.Vertices.Count > 0 ? isCloseToVertex(challengePolygon.Vertices[0], 200f) : null;
         if (Input.GetButtonDown("Fire1")){
             OnClick(snapToVertex);
@@ -143,12 +132,11 @@ public class GameEventController : MonoBehaviour
 
         if(vertex.Distance(pos) < range) {
             vertex.Scale = 60;
-            vertex.Color = Color.blue;
+            vertex.Color = Color.green;
             return vertex;
         }
 
-        vertex.Scale = null;
-        vertex.Color = null;
+        vertex.ResetShape();
 
         return null;
     }
