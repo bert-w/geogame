@@ -117,20 +117,35 @@ public class PlaceLightsController : MonoBehaviour
 
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
 
-        // Goed checken
-        foreach (var edge in visibilityPolygonEdges)
-        {
-            // TODO de punten staan in order can visibility dus voor het teken moet je alleen kijken wel punt overlap en op basis daarvan start en end swappen
-            visibilityPolygon.Add(edge.start);
-            visibilityPolygon.Add(edge.end);
-        }
+        Vector2 previous = visibilityPolygonEdges[0].start;
+        Edge previousEdge = visibilityPolygonEdges[0];
+        visibilityPolygon.Add(previous);
 
+        for (int i = 1; i < visibilityPolygonEdges.Count; i++)
+        {
+            var edge = visibilityPolygonEdges[i];
+
+            if (edge.start == previous)
+            {
+                previous = edge.end;
+            }
+            else
+            {
+                if (edge.end != previous)
+                {
+                    Debug.Log(previous.ToString() + edge.ToString());
+                }
+                previous = edge.start;
+            }
+
+            visibilityPolygon.Add(previous);
+        }
 
         visibilityPolygon.Add(visibilityPolygonEdges.First().start);
 
 
         // @TODO dit moet weg
-        RemoveDuplicate(visibilityPolygon, mPos);
+        // RemoveDuplicate(visibilityPolygon, mPos);
 
 
         visibilityPolygonLine.SetPositions(visibilityPolygon.vertices.Select(v =>
@@ -287,11 +302,14 @@ public class PlaceLightsController : MonoBehaviour
                     partialVisibleEdge = intersectionPoint;
                     var previousEdge = polygon.Last();
                     polygon[polygon.Count - 1] = new Edge(previousEdge.start, intersectionPoint.Value);
-                    polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                    var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                    intersectionEdge.DebugDraw(Color.blue, 1);
+                    polygon.Add(intersectionEdge);
                 }
 
                 state.Add(event1);
                 state.Add(event2);
+
             }
             else if (event1.Type == EventType.End && event2.Type == EventType.End)
             {
@@ -307,11 +325,14 @@ public class PlaceLightsController : MonoBehaviour
                     if (minItem != null)
                     {
                         partialVisibleEdge = intersectionPoint;
-                        polygon[polygon.Count - 1] = new Edge(intersectionPoint.Value, minItem.Edge.end);
-                        polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                        var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                        var backEdge = new Edge(intersectionPoint.Value, minItem.Edge.end);
+                        intersectionEdge.DebugDraw(Color.green, 1);
+                        polygon.Add(intersectionEdge);
+                        polygon.Add(backEdge);
                     }
 
-                    polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                    //polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
                     partialVisibleEdge = intersectionPoint;
                 }
 
@@ -330,16 +351,16 @@ public class PlaceLightsController : MonoBehaviour
 
             var minEvent = state.FindMin();
 
-            //if (minEvent != null)
-            //{
-            //    minEvent.Edge.DebugDraw();
-            //}
-
             if (minEvent != null)
             {
                 polygon.Add(minEvent.Edge);
                 previousEmittedEdge = minEvent.Edge;
             }
+        }
+
+        foreach (var item in polygon.Distinct())
+        {
+            item.DebugDraw();
         }
 
         return polygon.Distinct().ToList();
