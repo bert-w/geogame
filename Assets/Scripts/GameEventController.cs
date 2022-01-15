@@ -92,14 +92,30 @@ public class GameEventController : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    // to call after each "turn"
+    private void OnEnable()
     {
+        polygonStarted = false;
         challengePolygon = new GameObject().AddComponent<Polygon>();
         challengePolygon.name = "Challenge Polygon";
         challengePolygon.transform.SetParent(transform);
+        edgeList.Clear();
+    }
+    /*
+    private void Awake()
+    {
+        polygonStarted = false;
+        challengePolygon = new GameObject().AddComponent<Polygon>();
+        challengePolygon.name = "Challenge Polygon";
+        challengePolygon.transform.SetParent(transform);
+    }*/
+
+    void Start()
+    {
+        
 
         polygonLine = GetComponent<LineRenderer>();
+        polygonLine.positionCount = 0;
         polygonLine.material.color = LineColor;
         polygonLine.widthMultiplier = LineWidth;
     }
@@ -107,6 +123,7 @@ public class GameEventController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log("vertices: " + challengePolygon.vertices.Count);
         PolygonVertex snapToVertex = challengePolygon.vertices.Count > 0 ? isCloseToVertex(challengePolygon.vertices[0], 200f) : null;
         if (Input.GetButtonDown("Fire1")){
             OnClick(snapToVertex);
