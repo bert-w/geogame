@@ -469,6 +469,7 @@ public class PlaceLightsController : MonoBehaviour
         {
             //Debug.Log("%:" + coverPercentage);
             challengeFinished = true;
+            gameEventController.PlayAudio("win", 0.1f);
             // @ TODO change way score is calculated
             var score = challengePolygon.Vertices.Count / visibilityPolygonList.Count;
             if (playerTurnString == "Player 1's turn")
