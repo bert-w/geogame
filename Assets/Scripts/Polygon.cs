@@ -59,10 +59,7 @@ public class Polygon : MonoBehaviour
 
     void Awake()
     {
-<<<<<<< Updated upstream
         // NOTE: im not sure why we need this repeated here, some lifecycle issue.
-=======
->>>>>>> Stashed changes
         polygonVertex = Instantiate(Resources.Load("Vertex", typeof(GameObject)), transform) as GameObject;
     }
 
