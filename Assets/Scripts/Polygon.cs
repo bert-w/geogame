@@ -104,12 +104,17 @@ public class Polygon : MonoBehaviour
         return Add(vertex);
     }
 
-    public void empty()
+    public void Empty()
     {
-        for(var i = 0; i < Vertices.Count; i++) {
-            Destroy(Vertices[i].gameObject);
+        foreach(PolygonVertex v in Vertices) {
+            Destroy(v.gameObject);
         }
         Vertices.Clear();
+
+        foreach(GameEdge e in TriangulationGameEdges) {
+            Destroy(e.gameObject);
+        }
+        TriangulationGameEdges.Clear();
     }
 
     
@@ -170,8 +175,6 @@ public class Polygon : MonoBehaviour
     private void CreateTriangulationEdges()
     {
         int[] t = _triangulationMesh.triangles;
-
-        TriangulationGameEdges.Clear();
 
         for(int offset = 0; offset < t.Count() - 2; offset+=3) {
             Vector3[] v = _triangulationMesh.vertices;

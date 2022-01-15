@@ -154,7 +154,7 @@ public class PlaceLightsController : MonoBehaviour
     {
         Vector3 mPos = GetMousePosition();
 
-        visibilityPolygon.empty();
+        visibilityPolygon.Empty();
 
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
 
