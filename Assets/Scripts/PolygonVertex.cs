@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
-public class PolygonVertex : MonoBehaviour
+public class PolygonVertex : MonoBehaviour, IEquatable<PolygonVertex>
 {
     public enum _Type { Start, End, Split, Merge, Regular }
 
@@ -71,8 +72,7 @@ public class PolygonVertex : MonoBehaviour
         return Vector3.Distance(transform.position, to);
     }
 
-    // @TODO check if this is correct
-    public bool IsEqual(PolygonVertex other)
+    public bool Equals(PolygonVertex other)
     {
         return ((x == other.x) && (y == other.y));
     }

@@ -98,14 +98,6 @@ public class Edge : IEquatable<Edge>
         return "Edge: " + start + " -> " + end;
     }
 
-
-
-    // Checks if two edges are the same
-    public bool IsEqual(Edge other)
-    {
-        return (this.start == other.start) && (this.end == other.end) || (this.end == other.start) && (this.start == other.end);
-    }
-
     // Checks if two edges are the reverse of each other
     public bool IsReversed(Edge other)
     {
@@ -121,7 +113,7 @@ public class Edge : IEquatable<Edge>
 
     public bool Equals(Edge edge)
     {
-       return IsEqual(edge);
+        return (this.start == edge.start) && (this.end == edge.end) || (this.end == edge.start) && (this.start == edge.end);
     }
 }
 
