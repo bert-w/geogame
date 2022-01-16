@@ -2,12 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
 
 public class MainMenu : MonoBehaviour
 {
 
     public GameObject mainMenu;
     public GameObject howToMenu;
+
+    public Toggle geomExplanations;
+
 
     public void PlayGame()
     {
@@ -26,5 +31,12 @@ public class MainMenu : MonoBehaviour
         mainMenu.SetActive(true);
         howToMenu.SetActive(false);
     }
+
+    public void ChangeExplanations()
+    {
+        PlayerScore.explanations = geomExplanations.isOn;
+     
+    }
+
 
 }

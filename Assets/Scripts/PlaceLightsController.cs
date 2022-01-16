@@ -24,6 +24,9 @@ public class PlaceLightsController : MonoBehaviour
     Polygon currentVisibilityPolygon;
 
     public float LineWidth;
+    public Material mat;
+    public float drawDuration = .2f;
+
 
     public Color LineColor = Color.black;
 
@@ -101,7 +104,7 @@ public class PlaceLightsController : MonoBehaviour
             // On click, instantiate a new visibility polygon and save it in the list.
             Polygon instance = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
             instance.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
-            visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance));
+            visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance, PlayerScore.explanations));
             AddLightOnMousePosition();
             MergeVisibilityPolygons(visibilityPolygonList);
         }
@@ -147,11 +150,11 @@ public class PlaceLightsController : MonoBehaviour
     /// </summary>
     /// <param name="visibilityPolygon">An existing GameObject to use for the visibility polygon. This allows you to 
     /// pass the same gameobject if you want to re-render a given object with a new mouse position.</param>
-    Polygon CreateNewVisibilityPolygon(Polygon visibilityPolygon)
+    Polygon CreateNewVisibilityPolygon(Polygon visibilityPolygon, bool draw = false)
     {
         visibilityPolygon.Empty();
         Vector3 mPos = GetMousePosition();
-        var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
+        var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos, draw);
 
         Vector2 previous = visibilityPolygonEdges[0].start;
         Edge previousEdge = visibilityPolygonEdges[0];
@@ -284,7 +287,7 @@ public class PlaceLightsController : MonoBehaviour
         return unsortedQueue.OrderBy(queueItem => queueItem.Degrees).ToList();
     }
 
-    private List<Edge> GenerateVisibilityPolygon(Vector3 mPos)
+    private List<Edge> GenerateVisibilityPolygon(Vector3 mPos, bool draw = false)
     {
         var polygon = new List<Edge>();
         var queue = GenerateEventQueue(mPos);
@@ -292,10 +295,17 @@ public class PlaceLightsController : MonoBehaviour
         Edge previousEmittedEdge = null;
         Vector2? partialVisibleEdge = null;
 
+        if (draw)
+        {
+            StartCoroutine(_GenerateVisiblityPolygon(mPos));
+        }
+
+
         for (int i = 0; i < queue.Count; i += 2)
         {
             var event1 = queue[i];
             var event2 = queue[i + 1];
+            
 
             if (event1.Type == EventType.Start && event2.Type == EventType.Start)
             {
@@ -460,5 +470,142 @@ public class PlaceLightsController : MonoBehaviour
             enabled = false;
             return;
         }
+    }
+
+
+    void DrawEdge(Vector2 start, Vector2 end, Color color, float duration = .2f, float width = 10f)
+    {
+        var line = new GameObject().AddComponent<LineRenderer>();
+        line.material = mat;
+        line.startWidth = width;
+        line.endWidth = width;
+        line.positionCount = 2;
+        line.startColor = color;
+        line.endColor = color;
+        line.SetPosition(0, start);
+        line.SetPosition(1, end);
+        Destroy(line.gameObject, duration);
+        
+
+    }
+
+    IEnumerator _GenerateVisiblityPolygon(Vector3 mPos)
+    {
+        var polygon = new List<Edge>();
+        var queue = GenerateEventQueue(mPos);
+        var state = new RedBlackTree<Event>();
+        Edge previousEmittedEdge = null;
+        Vector2? partialVisibleEdge = null;
+
+        for (int i = 0; i<queue.Count; i += 2)
+        {
+            var event1 = queue[i];
+            var event2 = queue[i + 1];
+
+           
+
+            if (event1.Type == EventType.Start && event2.Type == EventType.Start)
+            {
+                var overlappingVertex = event1.Edge.FindOverlappingVertex(event2.Edge).Value;
+                var intersectionPoint = GetRayIntersectionPoint(mPos, overlappingVertex, state);
+
+                if (intersectionPoint != null)
+                {
+                    DrawEdge(mPos, event1.Edge.start, Color.red, drawDuration);
+                    yield return new WaitForSeconds(drawDuration);
+
+
+                    partialVisibleEdge = intersectionPoint;
+                    var previousEdge = polygon.Last();
+                    polygon[polygon.Count - 1] = new Edge(previousEdge.start, intersectionPoint.Value);
+                    var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                    intersectionEdge.DebugDraw(Color.blue, 1);
+                    polygon.Add(intersectionEdge);
+
+                    DrawEdge(intersectionEdge.start, intersectionEdge.end, Color.gray, width: 20);
+                    yield return new WaitForSeconds(drawDuration);
+                   
+                }
+
+                state.Add(event1);
+                state.Add(event2);
+
+            }
+            else if (event1.Type == EventType.End && event2.Type == EventType.End)
+            {
+                DrawEdge(mPos, event1.Edge.start, Color.blue, drawDuration);
+                yield return new WaitForSeconds(drawDuration);
+
+
+                state.Delete(event1);
+                state.Delete(event2);
+
+                var overlappingVertex = event1.Edge.FindOverlappingVertex(event2.Edge).Value;
+                var intersectionPoint = GetRayIntersectionPoint(mPos, overlappingVertex, state);
+
+                if (intersectionPoint != null)
+                {
+                    var minItem = state.FindMin();
+                    if (minItem != null)
+                    {
+                        partialVisibleEdge = intersectionPoint;
+                        var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                        var backEdge = new Edge(intersectionPoint.Value, minItem.Edge.end);
+                        intersectionEdge.DebugDraw(Color.green, 1);
+                        polygon.Add(intersectionEdge);
+                        polygon.Add(backEdge);
+
+                        DrawEdge(intersectionEdge.start, intersectionEdge.end, Color.gray, width: 20);
+                        yield return new WaitForSeconds(drawDuration);
+                        DrawEdge(backEdge.start, backEdge.end, Color.gray, width: 20);
+                        yield return new WaitForSeconds(drawDuration);
+                    }
+
+                    //polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
+                    partialVisibleEdge = intersectionPoint;
+                }
+
+                continue;
+            }
+            else if (event1.Type == EventType.Start && event2.Type == EventType.End)
+            {
+                DrawEdge(mPos, event1.Edge.start, Color.green, drawDuration);
+                yield return new WaitForSeconds(drawDuration);
+                state.Add(event1);
+                state.Delete(event2);
+            }
+            else if (event1.Type == EventType.End && event2.Type == EventType.Start)
+            {
+                DrawEdge(mPos, event1.Edge.start, Color.white, drawDuration);
+                yield return new WaitForSeconds(drawDuration);
+                state.Delete(event1);
+                state.Add(event2);
+            }
+
+            var minEvent = state.FindMin();
+
+            if (minEvent != null)
+            {
+                polygon.Add(minEvent.Edge);
+                previousEmittedEdge = minEvent.Edge;
+
+                DrawEdge(previousEmittedEdge.start, previousEmittedEdge.end, Color.gray, width: 20);
+                yield return new WaitForSeconds(drawDuration);
+            }
+        }
+
+        foreach (var item in polygon.Distinct())
+        {
+            item.DebugDraw();
+        }
+
+        yield return null;
+        
+    }
+
+
+    IEnumerator Wait(float duration = .2f)
+    {
+        yield return new WaitForSeconds(duration);
     }
 }

@@ -12,6 +12,9 @@ public static class PlayerScore
 
     public static int scoreToWin = 10;
 
+    public static bool explanations = false;
+
+
     public static void ResetScore()
     {
         player1Score = 0f;
