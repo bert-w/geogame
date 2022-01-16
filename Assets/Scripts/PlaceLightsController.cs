@@ -20,6 +20,8 @@ public class PlaceLightsController : MonoBehaviour
     private List<PolygonVertex> eventQueue;
 
     public GameObject visibilityPolygonPrefab;
+
+    public bool isDrawing;
     
     Polygon currentVisibilityPolygon;
 
@@ -60,6 +62,8 @@ public class PlaceLightsController : MonoBehaviour
     // Start is called before the first frame update
     private void OnEnable()
     {
+        isDrawing = false;
+
         mouseLight = CreateMouseLight("Mouse Light", Vector3.zero);
 
         playerTurnString = playerTurnString == "Player 1's turn" ? "Player 2's turn" : "Player 1's turn";
@@ -90,23 +94,27 @@ public class PlaceLightsController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        mouseLight.transform.position = GetMousePosition();
-
-        // Draw current visibility polygon every time.
-        CreateNewVisibilityPolygon(currentVisibilityPolygon);
-        visibilityPolygonLine.SetPositions(currentVisibilityPolygon.Vertices.Select(v =>
+        if (!isDrawing)
         {
-            return (Vector3) v.ToVector();
-        }).ToArray());
-        visibilityPolygonLine.positionCount = currentVisibilityPolygon.Vertices.Count;
+            mouseLight.transform.position = GetMousePosition();
 
-        if (Input.GetButtonDown("Fire1") && !challengeFinished) {
-            // On click, instantiate a new visibility polygon and save it in the list.
-            Polygon instance = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
-            instance.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
-            visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance, PlayerScore.explanations));
-            AddLightOnMousePosition();
-            MergeVisibilityPolygons(visibilityPolygonList);
+            // Draw current visibility polygon every time.
+            CreateNewVisibilityPolygon(currentVisibilityPolygon);
+            visibilityPolygonLine.SetPositions(currentVisibilityPolygon.Vertices.Select(v =>
+            {
+                return (Vector3)v.ToVector();
+            }).ToArray());
+            visibilityPolygonLine.positionCount = currentVisibilityPolygon.Vertices.Count;
+
+            if (Input.GetButtonDown("Fire1") && !challengeFinished)
+            {
+                // On click, instantiate a new visibility polygon and save it in the list.
+                Polygon instance = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
+                instance.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
+                visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance, PlayerScore.explanations));
+                AddLightOnMousePosition();
+                StartCoroutine(MergeVisibilityPolygons(visibilityPolygonList));
+            }
         }
     }
 
@@ -297,6 +305,7 @@ public class PlaceLightsController : MonoBehaviour
 
         if (draw)
         {
+            isDrawing = true;
             StartCoroutine(_GenerateVisiblityPolygon(mPos));
         }
 
@@ -413,7 +422,7 @@ public class PlaceLightsController : MonoBehaviour
     // merges currently existing visibility polygons with the latest polygon
     // can be used both for updating the polygons to be drawn and 
     // placing a new light
-    public void MergeVisibilityPolygons(List<Polygon> visibilityPolygonList)
+    public IEnumerator MergeVisibilityPolygons(List<Polygon> visibilityPolygonList)
     {
 
         ICollection<Polygon2D> pol2dCol = new List<Polygon2D>();
@@ -429,6 +438,12 @@ public class PlaceLightsController : MonoBehaviour
         coverPercentage = contourPolygon.Area / challengePolygonArea;
 
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
+
+
+        // dumb way to wait for coroutine to finish
+        yield return new WaitUntil(()=>!isDrawing);
+
+
         if (coverPercentage >=0.99999f)
         {
             //Debug.Log("%:" + coverPercentage);
@@ -468,8 +483,10 @@ public class PlaceLightsController : MonoBehaviour
 
 
             enabled = false;
-            return;
+            yield return null;
         }
+
+        yield return null;
     }
 
 
@@ -491,6 +508,9 @@ public class PlaceLightsController : MonoBehaviour
 
     IEnumerator _GenerateVisiblityPolygon(Vector3 mPos)
     {
+        isDrawing = true;
+
+
         var polygon = new List<Edge>();
         var queue = GenerateEventQueue(mPos);
         var state = new RedBlackTree<Event>();
@@ -598,6 +618,8 @@ public class PlaceLightsController : MonoBehaviour
         {
             item.DebugDraw();
         }
+
+        isDrawing = false;
 
         yield return null;
         
