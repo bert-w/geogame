@@ -623,7 +623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &753331246
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1602,7 +1602,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1932263788
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1655,15 +1655,20 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Bla bla bla blaaaa
+  m_Text: 'Place vertices/lights using
 
-    yadda
+    the left mouse button
 
-    yadda
+    Make the polygons
+    as
 
-    -0--------d
+    complex as possible with
 
-    adasdasdasdas'
+    as few vertices as possible
+
+    Good luck!
+
+'
 --- !u!222 &1932263790
 CanvasRenderer:
   m_ObjectHideFlags: 0
