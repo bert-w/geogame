@@ -532,8 +532,6 @@ MonoBehaviour:
   polygonLine: {fileID: 480255767}
   challengePolygonPrefab: {fileID: 3645751539672561320, guid: ceeb6b8de13202b49929b59c6ee0017f,
     type: 3}
-  audioClipClick: {fileID: 8300000, guid: 46bee6333b5de0c4083ce80b7718c42b, type: 3}
-  audioClipError: {fileID: 8300000, guid: 2464d68a5ebb7ba448d1133b22646303, type: 3}
   placeLightsController: {fileID: 1527636519}
 --- !u!4 &480255766
 Transform:

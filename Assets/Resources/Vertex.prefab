@@ -115,3 +115,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   x: 0
   y: 0
+  polarCoordinates: {x: 0, y: 0, z: 0}
+  showTypeColor: 0
+  <Type>k__BackingField: 0
+  Color: {r: 0, g: 0, b: 0, a: 1}
+  Scale: 30

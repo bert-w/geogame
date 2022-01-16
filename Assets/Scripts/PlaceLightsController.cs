@@ -57,15 +57,13 @@ public class PlaceLightsController : MonoBehaviour
     // Start is called before the first frame update
     private void OnEnable()
     {
-        mouseLight = Instantiate(mouseLightPrefab, transform);
-        mouseLight.name = "Mouse Light";
-        mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
+        mouseLight = CreateMouseLight("Mouse Light", Vector3.zero);
 
         playerTurnString = playerTurnString == "Player 1's turn" ? "Player 2's turn" : "Player 1's turn";
         playerTurn.text = playerTurnString;
 
         visibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
-        visibilityPolygon.name = "Visibility Polygon";
+        visibilityPolygon.name = "Mouse Visibility Polygon";
         visibilityPolygonLine = visibilityPolygon.GetComponentInParent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
         visibilityPolygonLine.widthMultiplier = LineWidth;
@@ -77,30 +75,14 @@ public class PlaceLightsController : MonoBehaviour
         challengeFinished = false;
         coverPercentage = 0f;
     }
-    /*
-    void Start()
+
+    GameObject CreateMouseLight(string name, Vector3 position)
     {
-        mouseLight = Instantiate(mouseLight, transform);
-        mouseLight.name = "Mouse Light";
+        GameObject mouseLight = Instantiate(mouseLightPrefab, position, Quaternion.identity, transform);
+        mouseLight.name = name;
         mouseLight.GetComponent<SpriteRenderer>().color = Color.yellow;
-
-        playerTurnString = playerTurnString == "Player 1's turn" ? "Player 2's turn" : "Player 1's turn";
-        playerTurn.text = playerTurnString;
-
-        visibilityPolygon = new GameObject().AddComponent<Polygon>();
-        visibilityPolygon.name = "Visibility Polygon";
-        visibilityPolygon.transform.SetParent(transform);
-        visibilityPolygonLine = GetComponent<LineRenderer>();
-        visibilityPolygonLine.material.color = LineColor;
-        visibilityPolygonLine.widthMultiplier = LineWidth;
-
-        percentageText.text = string.Format("{0:P2}", (coverPercentage));
-
-        // @ TODO calculate this by triangulation
-        challengePolygonArea = ChangePolToPol2D(challengePolygon).Area;
-        challengeFinished = false;
-        coverPercentage = 0f;
-    }*/
+        return mouseLight;
+    }
 
     // Update is called once per frame
     void Update()
@@ -202,8 +184,8 @@ public class PlaceLightsController : MonoBehaviour
     // @TODO update this with latest code
     Polygon CreateNewVisibilityPolygon()
     {
-        Polygon visibilityPolygon = new GameObject().AddComponent<Polygon>();
-        visibilityPolygon.transform.SetParent(transform);
+        Polygon visibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
+        visibilityPolygon.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
         Vector3 mPos = GetMousePosition();
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
 
@@ -235,7 +217,17 @@ public class PlaceLightsController : MonoBehaviour
 
         //RemoveDuplicate(newVis, mPos);
 
+        // Set to completed, so triangulation can take place and the mesh will become visible.
+        visibilityPolygon.Completed = true;
+
+        AddLightOnMousePosition();
+
         return visibilityPolygon;
+    }
+
+    void AddLightOnMousePosition()
+    {
+        lights.Add(CreateMouseLight("Light " + (lights.Count + 1), GetMousePosition()).GetComponent<PolygonVertex>());
     }
 
 
@@ -489,6 +481,7 @@ public class PlaceLightsController : MonoBehaviour
                 //if(child.gameObject.name != "Mouse Light")
                     Destroy(child.gameObject);
             }
+            lights.Clear();
             Destroy(challengePolygon.gameObject);
             visibilityPolygonList.Clear();
             visibilityPolygonLine.positionCount = 0;
@@ -505,20 +498,5 @@ public class PlaceLightsController : MonoBehaviour
             enabled = false;
             return;
         }
-
-
-        /*foreach (var item in mergedVisibilityPolygon.Contours)
-        {
-            var poly = ChangeContourToPol(item);
-            RemoveDuplicate(poly);
-        }*/
-            
-        
-
-
     }
-
 }
-
-
-
