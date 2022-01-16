@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
-public class Edge
+public class Edge : IEquatable<Edge>
 {
 
     public Vector2 start { get; set; }
@@ -92,6 +93,11 @@ public class Edge
         Debug.DrawLine(start, end, color, duration);
     }
 
+    public override string ToString()
+    {
+        return "Edge: " + start + " -> " + end;
+    }
+
 
 
     // Checks if two edges are the same
@@ -111,6 +117,11 @@ public class Edge
     public bool Overlaps(Edge other)
     {
         return true;
+    }
+
+    public bool Equals(Edge edge)
+    {
+       return IsEqual(edge);
     }
 }
 
