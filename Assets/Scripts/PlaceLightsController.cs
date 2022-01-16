@@ -192,6 +192,7 @@ public class PlaceLightsController : MonoBehaviour
 
     void AddLightOnMousePosition()
     {
+        gameEventController.PlayAudio("click", 0.1f);
         lights.Add(CreateMouseLight("Light " + (lights.Count + 1), GetMousePosition()).GetComponent<PolygonVertex>());
     }
 
