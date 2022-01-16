@@ -21,7 +21,7 @@ public class PlaceLightsController : MonoBehaviour
 
     public GameObject visibilityPolygonPrefab;
     
-    Polygon visibilityPolygon;
+    Polygon currentVisibilityPolygon;
 
     public float LineWidth;
 
@@ -62,9 +62,9 @@ public class PlaceLightsController : MonoBehaviour
         playerTurnString = playerTurnString == "Player 1's turn" ? "Player 2's turn" : "Player 1's turn";
         playerTurn.text = playerTurnString;
 
-        visibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
-        visibilityPolygon.name = "Mouse Visibility Polygon";
-        visibilityPolygonLine = visibilityPolygon.GetComponentInParent<LineRenderer>();
+        currentVisibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
+        currentVisibilityPolygon.name = "Mouse Visibility Polygon";
+        visibilityPolygonLine = currentVisibilityPolygon.GetComponentInParent<LineRenderer>();
         visibilityPolygonLine.material.color = LineColor;
         visibilityPolygonLine.widthMultiplier = LineWidth;
 
@@ -89,9 +89,20 @@ public class PlaceLightsController : MonoBehaviour
     {
         mouseLight.transform.position = GetMousePosition();
 
-        GenerateVisibilityPolygon();
-        if (Input.GetButtonDown("Fire1") && !challengeFinished){
-            visibilityPolygonList.Add(CreateNewVisibilityPolygon());
+        // Draw current visibility polygon every time.
+        CreateNewVisibilityPolygon(currentVisibilityPolygon);
+        visibilityPolygonLine.SetPositions(currentVisibilityPolygon.Vertices.Select(v =>
+        {
+            return (Vector3) v.ToVector();
+        }).ToArray());
+        visibilityPolygonLine.positionCount = currentVisibilityPolygon.Vertices.Count;
+
+        if (Input.GetButtonDown("Fire1") && !challengeFinished) {
+            // On click, instantiate a new visibility polygon and save it in the list.
+            Polygon instance = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
+            instance.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
+            visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance));
+            AddLightOnMousePosition();
             MergeVisibilityPolygons(visibilityPolygonList);
         }
     }
@@ -131,61 +142,14 @@ public class PlaceLightsController : MonoBehaviour
         return new Polygon2D(collection);
     }
 
-    void GenerateVisibilityPolygon()
+    /// <summary>
+    /// Create a visibility polygon using the current mouse position.
+    /// </summary>
+    /// <param name="visibilityPolygon">An existing GameObject to use for the visibility polygon. This allows you to 
+    /// pass the same gameobject if you want to re-render a given object with a new mouse position.</param>
+    Polygon CreateNewVisibilityPolygon(Polygon visibilityPolygon)
     {
-        Vector3 mPos = GetMousePosition();
-
         visibilityPolygon.Empty();
-
-        var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
-
-        Vector2 previous = visibilityPolygonEdges[0].start;
-        Edge previousEdge = visibilityPolygonEdges[0];
-        visibilityPolygon.Add(previous);
-
-        for (int i = 1; i < visibilityPolygonEdges.Count; i++)
-        {
-            var edge = visibilityPolygonEdges[i];
-
-            if (edge.start == previous)
-            {
-                previous = edge.end;
-            }
-            else
-            {
-                if (edge.end != previous)
-                {
-                    //Debug.Log(previous.ToString() + edge.ToString());
-                }
-                previous = edge.start;
-            }
-
-            visibilityPolygon.Add(previous);
-        }
-
-        visibilityPolygon.Add(visibilityPolygonEdges.First().start);
-
-
-        // @TODO dit moet weg
-        // RemoveDuplicate(visibilityPolygon, mPos);
-
-
-        visibilityPolygonLine.SetPositions(visibilityPolygon.Vertices.Select(v =>
-        {
-            return new Vector3(v.x, v.y, 0);
-        }).ToArray());
-
-        visibilityPolygonLine.positionCount = visibilityPolygon.Vertices.Count;
-
-        visibilityPolygon.Completed = true;
-    }
-
-
-    // @TODO update this with latest code
-    Polygon CreateNewVisibilityPolygon()
-    {
-        Polygon visibilityPolygon = Instantiate(visibilityPolygonPrefab, transform).GetComponent<Polygon>();
-        visibilityPolygon.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
         Vector3 mPos = GetMousePosition();
         var visibilityPolygonEdges = GenerateVisibilityPolygon(mPos);
 
@@ -219,8 +183,6 @@ public class PlaceLightsController : MonoBehaviour
 
         // Set to completed, so triangulation can take place and the mesh will become visible.
         visibilityPolygon.Completed = true;
-
-        AddLightOnMousePosition();
 
         return visibilityPolygon;
     }
