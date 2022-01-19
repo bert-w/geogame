@@ -255,17 +255,17 @@ public class PlaceLightsController : MonoBehaviour
         foreach (var edge in challengePolygon.Edges)
         {
             // TODO dubbel check x and y
-            var Polar1 = PolarCoordinateBuilder.Build(mPos, edge.start);
-            var degrees1 = Polar1.y - minDegrees;
+            var Polar1 = PolarCoordinateBuilder.Build(edge.start, mPos);
+            float degrees1 = Polar1.y - minDegrees;
             if (degrees1 < 0)
             {
-                degrees1 += 2 * Mathf.PI;
+                degrees1 += (2 * Mathf.PI);
             }
-            var Polar2 = PolarCoordinateBuilder.Build(mPos, edge.end);
-            var degrees2 = Polar2.y - minDegrees;
+            var Polar2 = PolarCoordinateBuilder.Build(edge.end, mPos);
+            float degrees2 = Polar2.y - minDegrees;
             if (degrees2 < 0)
             {
-                degrees2 += 2 * Mathf.PI;
+                degrees2 += (2 * Mathf.PI);
             }
 
             if (SafeVertexFinder.IsStartVertex(edge, mPos))
