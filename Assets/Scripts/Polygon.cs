@@ -9,7 +9,7 @@ using Util.Geometry.Polygon;
 
 public class Polygon : MonoBehaviour
 {
-    public enum _Direction {None, CW, CCW}
+    public enum _Direction { None, CW, CCW }
 
     private Mesh _triangulationMesh;
 
@@ -59,7 +59,6 @@ public class Polygon : MonoBehaviour
     [SerializeField]
     public Color BackgroundColor = new Color(1f, 1f, 1f, 0.5f);
 
-
     void OnEnable()
     {
         Debug.Log("[Polygon] OnEnable");
@@ -77,30 +76,30 @@ public class Polygon : MonoBehaviour
     {
         //
     }
-    
+
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.T)) {
+        if (Input.GetKeyDown(KeyCode.T)) {
             ShowVertexTypeColor = !ShowVertexTypeColor;
-            foreach(PolygonVertex vertex in Vertices) {
+            foreach (PolygonVertex vertex in Vertices) {
                 vertex.showTypeColor = ShowVertexTypeColor;
             }
         }
 
-        if(Input.GetKeyDown(KeyCode.E)) {
+        if (Input.GetKeyDown(KeyCode.E)) {
             ShowTriangulationEdges = !ShowTriangulationEdges;
-            foreach(GameEdge edge in TriangulationGameEdges) {
+            foreach (GameEdge edge in TriangulationGameEdges) {
                 edge.show = ShowTriangulationEdges;
             }
         }
 
-        if(ShowBackgroundColor) {
+        if (ShowBackgroundColor) {
             DrawBackground(BackgroundColor);
         }
     }
 
-    
+
 
     public PolygonVertex Add(PolygonVertex v)
     {
@@ -119,25 +118,25 @@ public class Polygon : MonoBehaviour
 
     public void Empty()
     {
-        foreach(PolygonVertex v in Vertices) {
+        foreach (PolygonVertex v in Vertices) {
             Destroy(v.gameObject);
         }
         Vertices.Clear();
 
-        foreach(GameEdge e in TriangulationGameEdges) {
+        foreach (GameEdge e in TriangulationGameEdges) {
             Destroy(e.gameObject);
         }
         TriangulationGameEdges.Clear();
     }
 
-    
+
     public bool Completed {
         get {
             return _completed;
         }
         set {
             _completed = value;
-            if(value) {
+            if (value) {
                 // When completed, calculate the vertex types.
                 AssignVertexTypes();
                 Triangulate();
@@ -149,36 +148,36 @@ public class Polygon : MonoBehaviour
     // Complexity: n
     private void AssignVertexTypes()
     {
-        for(var i = 0; i < Vertices.Count; i++)
+        for (var i = 0; i < Vertices.Count; i++)
         {
             PolygonVertex e = Vertices[i];
             PolygonVertex prev = i == 0 ? Vertices[Vertices.Count - 1] : Vertices[i - 1];
             PolygonVertex next = i != Vertices.Count - 1 ? Vertices[i + 1] : Vertices[0];
 
             float angle = Vector2.SignedAngle(new Edge(e, prev).ToVector(), new Edge(e, next).ToVector());
-            if(angle < 0) {
+            if (angle < 0) {
                 // Change to 360 degree notation instead of 180, -180.
                 angle = 360 - angle * -1;
             }
 
             // Assign types to polygon vertices.
-            if(e.y > prev.y && e.y > next.y && angle < 180) {
+            if (e.y > prev.y && e.y > next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.Start;
-            } else if(e.y > prev.y && e.y > next.y && angle > 180) { 
+            } else if (e.y > prev.y && e.y > next.y && angle > 180) {
                 e.Type = PolygonVertex._Type.Split;
-            } else if(e.y < prev.y && e.y < next.y && angle < 180) {
+            } else if (e.y < prev.y && e.y < next.y && angle < 180) {
                 e.Type = PolygonVertex._Type.End;
-            } else if(e.y < prev.y && e.y < next.y && angle > 180) {
+            } else if (e.y < prev.y && e.y < next.y && angle > 180) {
                 e.Type = PolygonVertex._Type.Merge;
             } else {
                 e.Type = PolygonVertex._Type.Regular;
             }
         }
     }
-    
+
     private void DrawBackground(Color color)
     {
-        if(_triangulationMesh) {
+        if (_triangulationMesh) {
             Material mat = new Material(Shader.Find("Sprites/Default"));
             mat.color = color;
             Graphics.DrawMesh(_triangulationMesh, Vector2.zero, Quaternion.identity, mat, 1);
@@ -188,15 +187,14 @@ public class Polygon : MonoBehaviour
     private void CreateTriangulationEdges()
     {
         int[] t = _triangulationMesh.triangles;
-
-        for(int offset = 0; offset < t.Count() - 2; offset+=3) {
+        for (int offset = 0; offset < t.Count() - 2; offset += 3) {
             Vector3[] v = _triangulationMesh.vertices;
             List<(Vector3, Vector3)> edges = new List<(Vector3, Vector3)> {
                 (v[t[offset]], v[t[offset + 1]]),
                 (v[t[offset + 1]], v[t[offset + 2]]),
                 (v[t[offset + 2]], v[t[offset]]),
             };
-            foreach((Vector3 start, Vector3 end) in edges) {
+            foreach ((Vector3 start, Vector3 end) in edges) {
                 GameEdge gameEdge = GameEdge.Create(gameObject, start, end);
                 gameEdge.color = Color.red;
                 TriangulationGameEdges.Add(gameEdge);
@@ -209,10 +207,10 @@ public class Polygon : MonoBehaviour
     {
         get {
             float sum = 0;
-            for(var i = 0; i < Vertices.Count; i++) {
+            for (var i = 0; i < Vertices.Count; i++) {
                 Vector2 next = i < Vertices.Count - 1 ? Vertices[i + 1].ToVector() : new Vector2(0, 0);
                 Vector2 curr = Vertices[i].ToVector();
-                sum += (next.x - curr.x)*(next.y + curr.y);
+                sum += (next.x - curr.x) * (next.y + curr.y);
             }
             _direction = sum < 0 ? _Direction.CCW : _Direction.CW;
             return _direction;
@@ -225,7 +223,7 @@ public class Polygon : MonoBehaviour
     // Triangulate a polygon.
     public void Triangulate()
     {
-        if(Direction == _Direction.CCW) {
+        if (Direction == _Direction.CCW) {
             Vertices.Reverse();
         }
 
@@ -256,4 +254,49 @@ public class Polygon : MonoBehaviour
         }
         return maxVertex;
     }
+
+
+    // returns whether a given point is inside the polygon
+    public bool PointInPolygon(Vector2 pos)
+    {
+        bool result = false;
+        int j = Vertices.Count - 1;
+        for (int i = 0; i < Vertices.Count; i++) {
+
+            if (Vertices[i].y < pos.y && Vertices[j].y >= pos.y || Vertices[j].y < pos.y && Vertices[i].y >= pos.y)
+            {
+                if (Vertices[i].x + (pos.y - Vertices[i].y) / (Vertices[j].y - Vertices[i].y) * (Vertices[j].x - Vertices[i].x) < pos.x)
+                {
+                    result = !result;
+                }
+
+            }
+            j = i;
+
+        }
+        return result;
+    }
+
+    // gets area of the polygon using the triangulation
+
+    public float GetArea()
+    {
+        var vertexList = _triangulationMesh.vertices;
+        var triangleList = _triangulationMesh.triangles;
+
+        float area = 0f;
+        for (int i = 0; i < _triangulationMesh.triangles.Length; i+=3)
+        {
+            var a = vertexList[triangleList[i]];
+            var b = vertexList[triangleList[i + 1]];
+            var c = vertexList[triangleList[i + 2]];
+
+            var singleArea = Math.Abs((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x*(a.y - b.y)) / 2);
+            area += singleArea;
+        }
+
+        return area;
+    }
+
+
 }

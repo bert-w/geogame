@@ -7,10 +7,13 @@ using Util.Geometry.Polygon;
 using Util.Algorithms.Polygon;
 using Util.Geometry.Contour;
 using UnityEngine.UI;
+using System;
 
 public class PlaceLightsController : MonoBehaviour
 {
     public Camera mainCam;
+
+    private System.Random _random = new System.Random(); 
 
     private GameObject mouseLight;
     public GameObject mouseLightPrefab;
@@ -51,6 +54,7 @@ public class PlaceLightsController : MonoBehaviour
     private bool challengeFinished = false;
 
     public Text percentageText;
+    public Text livePercentageText;
     public Text scorePlayer1;
     public Text scorePlayer2;
     public Text playerTurn;
@@ -78,7 +82,9 @@ public class PlaceLightsController : MonoBehaviour
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
 
         // @ TODO calculate this by triangulation
-        challengePolygonArea = ChangePolToPol2D(challengePolygon).Area;
+        challengePolygonArea = challengePolygon.GetArea();
+        //Debug.Log("areas are the same: " + (ChangePolToPol2D(challengePolygon).Area == challengePolygon.GetArea()));
+        
         challengeFinished = false;
         coverPercentage = 0f;
     }
@@ -94,10 +100,13 @@ public class PlaceLightsController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDrawing)
+        mouseLight.transform.position = GetMousePosition();
+        if(isDrawing) {
+            // Stepwise execution is busy, dont accept any inputs.
+            return;
+        }
+        if (challengePolygon.PointInPolygon(mouseLight.transform.position))
         {
-            mouseLight.transform.position = GetMousePosition();
-
             // Draw current visibility polygon every time.
             CreateNewVisibilityPolygon(currentVisibilityPolygon);
             visibilityPolygonLine.SetPositions(currentVisibilityPolygon.Vertices.Select(v =>
@@ -113,8 +122,14 @@ public class PlaceLightsController : MonoBehaviour
                 instance.name = "Visibility Polygon " + (visibilityPolygonList.Count + 1);
                 visibilityPolygonList.Add(CreateNewVisibilityPolygon(instance, PlayerScore.explanations));
                 AddLightOnMousePosition();
-                StartCoroutine(MergeVisibilityPolygons(visibilityPolygonList));
+                StartCoroutine(MergeVisibilityPolygons(visibilityPolygonList, percentageText, true));
+            } else {
+                List<Polygon> tempList = visibilityPolygonList.ToList();
+                tempList.Add(currentVisibilityPolygon);
+                StartCoroutine(MergeVisibilityPolygons(tempList, livePercentageText));
             }
+        } else if(Input.GetButtonDown("Fire1")) {
+            gameEventController.PlayAudio("error", 0.5f);
         }
     }
 
@@ -139,15 +154,26 @@ public class PlaceLightsController : MonoBehaviour
             pol.Add(new PolygonVertex { x = (float)item.x, y = (float)item.y });
         }
 
+        pol.Triangulate();
+
         return pol;
     }
 
     Polygon2D ChangePolToPol2D(Polygon pol)
     {
+        
         var vectorList = new List<Vector2>();
         foreach (var vert in pol.Vertices)
         {
-            vectorList.Add(vert.ToVector());
+            // generate 2 random neglible offsets for each vertex
+            float x_eps = (float)(_random.NextDouble() - .5f) * 0.00001f;
+            float y_eps = (float)(_random.NextDouble() - .5f) * 0.00001f;
+
+            var _vertex = vert.ToVector();
+            _vertex.x += x_eps;
+            _vertex.y += y_eps;
+
+            vectorList.Add(_vertex);
         }
         IEnumerable<Vector2> collection = vectorList;
         return new Polygon2D(collection);
@@ -436,7 +462,11 @@ public class PlaceLightsController : MonoBehaviour
     // merges currently existing visibility polygons with the latest polygon
     // can be used both for updating the polygons to be drawn and 
     // placing a new light
-    public IEnumerator MergeVisibilityPolygons(List<Polygon> visibilityPolygonList)
+    /// <param name="visibilityPolygonList">List of visibility polygons to merge and calculate.</param>
+    /// <param name="outputElement">Text object to put cover percentage in.</param>
+    /// <param name="endIfCovered">Pass true to end the game when the coverPercentage is reached. This should be false
+    /// for live calculation, so the game does not end immediately when 100% is reached when moving your mouse.</param>
+    public IEnumerator MergeVisibilityPolygons(List<Polygon> visibilityPolygonList, Text outputElement, bool endIfCovered = false)
     {
 
         ICollection<Polygon2D> pol2dCol = new List<Polygon2D>();
@@ -447,60 +477,78 @@ public class PlaceLightsController : MonoBehaviour
 
         contourPolygon = (ContourPolygon)unionSweepLine.Union(pol2dCol);
 
-        // something seems to go wrong here
+        float contourPolArea = 0f;
 
-        coverPercentage = contourPolygon.Area / challengePolygonArea;
+        foreach (var item in contourPolygon.Contours)
+        {
+            contourPolArea += ChangeContourToPol(item).GetArea();
+        }
 
-        percentageText.text = string.Format("{0:P2}", (coverPercentage));
+        //Debug.Log("vis area the same:" + (contourPolArea == contourPolygon.Area));
+
+        coverPercentage = contourPolArea / challengePolygonArea;
+        if (coverPercentage > 1f)
+            coverPercentage = 1f;
+        outputElement.text = string.Format("{0:P2}", (coverPercentage));
 
 
         // dumb way to wait for coroutine to finish
         yield return new WaitUntil(()=>!isDrawing);
 
 
-        if (coverPercentage >=0.99999f)
+        // tolerance for mistakes
+        if (coverPercentage >=0.98f && endIfCovered)
         {
-            //Debug.Log("%:" + coverPercentage);
-            challengeFinished = true;
-            gameEventController.PlayAudio("win", 0.1f);
-            // @ TODO change way score is calculated
-            var score = challengePolygon.Vertices.Count / visibilityPolygonList.Count;
-            if (playerTurnString == "Player 1's turn")
-            {
-                PlayerScore.player1Score += score;
-                scorePlayer1.text = string.Format("Player 1: {0}", PlayerScore.player1Score);
-            }
-            else
-            {
-                PlayerScore.player2Score += score;
-                scorePlayer2.text = string.Format("Player 2: {0}", PlayerScore.player2Score);
-            }
-            // Disable this controller.
-            // destroy all children
-            foreach (Transform child in transform)
-            {
-                //if(child.gameObject.name != "Mouse Light")
-                    Destroy(child.gameObject);
-            }
-            lights.Clear();
-            Destroy(challengePolygon.gameObject);
-            visibilityPolygonList.Clear();
-            visibilityPolygonLine.positionCount = 0;
-
-            if (PlayerScore.CheckPlayerWon())
-            {
-                Debug.Log(PlayerScore.winningPlayer);
-                gameOverScreen.SetActive(true);
-            }
-            else
-                gameEventController.enabled = true;
-
-
-            enabled = false;
+            EndGame();
             yield return null;
         }
 
         yield return null;
+    }
+
+    /// <summary>
+    /// Ends the game and shows the current player score.
+    /// </summary>
+    void EndGame()
+    {
+        //Debug.Log("%:" + coverPercentage);
+        challengeFinished = true;
+        gameEventController.PlayAudio("win", 0.1f);
+        // @ TODO change way score is calculated
+        var score = challengePolygon.Vertices.Count / visibilityPolygonList.Count;
+        if (playerTurnString == "Player 1's turn")
+        {
+            PlayerScore.player1Score += score;
+            scorePlayer1.text = string.Format("Player 1: {0}", PlayerScore.player1Score);
+        }
+        else
+        {
+            PlayerScore.player2Score += score;
+            scorePlayer2.text = string.Format("Player 2: {0}", PlayerScore.player2Score);
+        }
+        // Disable this controller.
+        // destroy all children
+        foreach (Transform child in transform)
+        {
+            //if(child.gameObject.name != "Mouse Light")
+                Destroy(child.gameObject);
+        }
+        lights.Clear();
+        Destroy(challengePolygon.gameObject);
+        visibilityPolygonList.Clear();
+        visibilityPolygonLine.positionCount = 0;
+
+        if (PlayerScore.CheckPlayerWon())
+        {
+            Debug.Log(PlayerScore.winningPlayer);
+            gameOverScreen.SetActive(true);
+        }
+        else
+            gameEventController.enabled = true;
+        percentageText.text = "0%";
+        livePercentageText.text = "0%";
+
+        enabled = false;
     }
 
 
