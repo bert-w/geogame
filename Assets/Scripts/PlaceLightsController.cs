@@ -496,7 +496,7 @@ public class PlaceLightsController : MonoBehaviour
 
 
         // tolerance for mistakes
-        if (coverPercentage >=0.98f && endIfCovered)
+        if (coverPercentage >=0.998f && endIfCovered)
         {
             EndGame();
             yield return null;
