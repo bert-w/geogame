@@ -100,10 +100,12 @@ public class PlaceLightsController : MonoBehaviour
     void Update()
     {
         mouseLight.transform.position = GetMousePosition();
-        if (!isDrawing && challengePolygon.PointInPolygon(mouseLight.transform.position))
+        if(isDrawing) {
+            // Stepwise execution is busy, dont accept any inputs.
+            return;
+        }
+        if (challengePolygon.PointInPolygon(mouseLight.transform.position))
         {
-            
-
             // Draw current visibility polygon every time.
             CreateNewVisibilityPolygon(currentVisibilityPolygon);
             visibilityPolygonLine.SetPositions(currentVisibilityPolygon.Vertices.Select(v =>
@@ -121,6 +123,8 @@ public class PlaceLightsController : MonoBehaviour
                 AddLightOnMousePosition();
                 StartCoroutine(MergeVisibilityPolygons(visibilityPolygonList));
             }
+        } else if(Input.GetButtonDown("Fire1")) {
+            gameEventController.PlayAudio("error", 0.5f);
         }
     }
 
