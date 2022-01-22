@@ -86,7 +86,6 @@ public class PlaceLightsController : MonoBehaviour
         //Debug.Log("areas are the same: " + (ChangePolToPol2D(challengePolygon).Area == challengePolygon.GetArea()));
         
         challengeFinished = false;
-        coverPercentage = 0f;
     }
 
     GameObject CreateMouseLight(string name, Vector3 position)
@@ -534,6 +533,8 @@ public class PlaceLightsController : MonoBehaviour
             gameEventController.enabled = true;
         percentageText.text = "0%";
         livePercentageText.text = "0%";
+
+        coverPercentage = 0f;
 
         enabled = false;
     }

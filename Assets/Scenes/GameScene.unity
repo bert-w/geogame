@@ -123,6 +123,85 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &80617060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 80617061}
+  - component: {fileID: 80617062}
+  - component: {fileID: 80617063}
+  m_Layer: 5
+  m_Name: LivePercentage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &80617061
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80617060}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1929185827}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 255, y: 0.6676}
+  m_SizeDelta: {x: 105.8679, y: 38}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &80617062
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80617060}
+  m_CullTransparentMesh: 1
+--- !u!114 &80617063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80617060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.9622642, g: 0.9018076, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 20
+    m_FontStyle: 1
+    m_BestFit: 0
+    m_MinSize: 2
+    m_MaxSize: 117
+    m_Alignment: 3
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 0%
 --- !u!1 &129027131
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,12 +232,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1929185827}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 76.74939, y: 0.66760063}
-  m_SizeDelta: {x: 118.709, y: 42.9576}
+  m_AnchoredPosition: {x: 61.961914, y: 0.66760063}
+  m_SizeDelta: {x: 89.134, y: 38}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &129027133
 MonoBehaviour:
@@ -236,8 +315,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 240, y: -0.0000081062}
-  m_SizeDelta: {x: 196.179, y: 38.764}
+  m_AnchoredPosition: {x: 154.30002, y: 0.6676}
+  m_SizeDelta: {x: 95.54, y: 38}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &318747762
 MonoBehaviour:
@@ -1360,6 +1439,7 @@ MonoBehaviour:
   visibilityPolygonList: []
   drawVisibilityPolygonList: []
   percentageText: {fileID: 318747762}
+  livePercentageText: {fileID: 80617063}
   scorePlayer1: {fileID: 995135662}
   scorePlayer2: {fileID: 1372156250}
   playerTurn: {fileID: 1673142457}
@@ -1596,12 +1676,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1929185827}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -351, y: -1.0881004}
-  m_SizeDelta: {x: 662.5099, y: 61.8239}
+  m_AnchoredPosition: {x: -130.0726, y: 0.11199}
+  m_SizeDelta: {x: 220.6551, y: 64.224}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1673142457
 MonoBehaviour:
@@ -1752,6 +1832,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 318747761}
+  - {fileID: 80617061}
   - {fileID: 129027132}
   - {fileID: 1673142456}
   m_Father: {fileID: 1993218059}
