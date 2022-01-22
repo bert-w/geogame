@@ -7,10 +7,13 @@ using Util.Geometry.Polygon;
 using Util.Algorithms.Polygon;
 using Util.Geometry.Contour;
 using UnityEngine.UI;
+using System;
 
 public class PlaceLightsController : MonoBehaviour
 {
     public Camera mainCam;
+
+    private System.Random _random = new System.Random(); 
 
     private GameObject mouseLight;
     public GameObject mouseLightPrefab;
@@ -149,10 +152,19 @@ public class PlaceLightsController : MonoBehaviour
 
     Polygon2D ChangePolToPol2D(Polygon pol)
     {
+        
         var vectorList = new List<Vector2>();
         foreach (var vert in pol.Vertices)
         {
-            vectorList.Add(vert.ToVector());
+            // generate 2 random neglible offsets for each vertex
+            float x_eps = (float)(_random.NextDouble() - .5f) * 0.00001f;
+            float y_eps = (float)(_random.NextDouble() - .5f) * 0.00001f;
+
+            var _vertex = vert.ToVector();
+            _vertex.x += x_eps;
+            _vertex.y += y_eps;
+
+            vectorList.Add(_vertex);
         }
         IEnumerable<Vector2> collection = vectorList;
         return new Polygon2D(collection);
