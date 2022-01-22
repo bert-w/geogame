@@ -256,4 +256,24 @@ public class Polygon : MonoBehaviour
         }
         return maxVertex;
     }
+
+    public bool PointInPolygon(Vector2 pos)
+    {
+        bool result = false;
+        int j = Vertices.Count - 1;
+        for (int i = 0; i < Vertices.Count; i++){
+
+            if (Vertices[i].y < pos.y && Vertices[j].y >= pos.y || Vertices[j].y < pos.y && Vertices[i].y >= pos.y)
+            {
+                if (Vertices[i].x + (pos.y - Vertices[i].y) / (Vertices[j].y - Vertices[i].y) * (Vertices[j].x - Vertices[i].x) < pos.x)
+                {
+                    result = !result;
+                }
+            
+            }
+            j = i;
+
+        }
+        return result;
+    }
 }

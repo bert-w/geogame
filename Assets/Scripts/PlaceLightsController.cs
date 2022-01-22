@@ -94,9 +94,10 @@ public class PlaceLightsController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDrawing)
+        mouseLight.transform.position = GetMousePosition();
+        if (!isDrawing && challengePolygon.PointInPolygon(mouseLight.transform.position))
         {
-            mouseLight.transform.position = GetMousePosition();
+            
 
             // Draw current visibility polygon every time.
             CreateNewVisibilityPolygon(currentVisibilityPolygon);
@@ -445,7 +446,8 @@ public class PlaceLightsController : MonoBehaviour
         yield return new WaitUntil(()=>!isDrawing);
 
 
-        if (coverPercentage >=0.99999f)
+        // tolerance for mistakes
+        if (coverPercentage >=0.98f)
         {
             //Debug.Log("%:" + coverPercentage);
             challengeFinished = true;
