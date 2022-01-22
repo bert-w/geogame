@@ -192,25 +192,26 @@ public class PlaceLightsController : MonoBehaviour
         Vector2 previous = visibilityPolygonEdges[0].start;
         Edge previousEdge = visibilityPolygonEdges[0];
         visibilityPolygon.Add(previous);
+        visibilityPolygon.Add(previousEdge.end);
 
         for (int i = 1; i < visibilityPolygonEdges.Count; i++)
         {
             var edge = visibilityPolygonEdges[i];
 
-            if (edge.start == previous)
+            if (edge.start == previousEdge.start || edge.start == previousEdge.end)
             {
-                previous = edge.end;
+                visibilityPolygon.Add(edge.end);
+            }
+            else if (edge.end == previousEdge.start || edge.end == previousEdge.end)
+            {
+                visibilityPolygon.Add(edge.start);
             }
             else
             {
-                if (edge.end != previous)
-                {
-                    //Debug.Log(previous.ToString() + edge.ToString());
-                }
-                previous = edge.start;
+                visibilityPolygon.Add(edge.start);
             }
 
-            visibilityPolygon.Add(previous);
+            previousEdge = edge;
         }
 
         visibilityPolygon.Add(visibilityPolygonEdges.First().start);
@@ -351,9 +352,10 @@ public class PlaceLightsController : MonoBehaviour
                 {
                     partialVisibleEdge = intersectionPoint;
                     var previousEdge = polygon.Last();
-                    polygon[polygon.Count - 1] = new Edge(previousEdge.start, intersectionPoint.Value);
+                    polygon.Remove(previousEdge);
+                    var backEdge = new Edge(previousEdge.start, intersectionPoint.Value);
                     var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
-                    intersectionEdge.DebugDraw(Color.blue, 1);
+                    polygon.Add(backEdge);
                     polygon.Add(intersectionEdge);
                 }
 
@@ -375,14 +377,13 @@ public class PlaceLightsController : MonoBehaviour
                     if (minItem != null)
                     {
                         partialVisibleEdge = intersectionPoint;
+                        previousEmittedEdge = minItem.Edge;
                         var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
                         var backEdge = new Edge(intersectionPoint.Value, minItem.Edge.end);
-                        intersectionEdge.DebugDraw(Color.green, 1);
                         polygon.Add(intersectionEdge);
                         polygon.Add(backEdge);
                     }
 
-                    //polygon.Add(new Edge(overlappingVertex, intersectionPoint.Value));
                     partialVisibleEdge = intersectionPoint;
                 }
 
@@ -401,16 +402,28 @@ public class PlaceLightsController : MonoBehaviour
 
             var minEvent = state.FindMin();
 
-            if (minEvent != null)
+            if (minEvent != null && minEvent.Edge != previousEmittedEdge)
             {
                 polygon.Add(minEvent.Edge);
                 previousEmittedEdge = minEvent.Edge;
             }
         }
 
-        foreach (var item in polygon.Distinct())
+        if (queue[0].Type == EventType.Start && queue[1].Type == EventType.Start)
         {
-            item.DebugDraw();
+            var overlappingVertex = queue[0].Edge.FindOverlappingVertex(queue[1].Edge).Value;
+            var intersectionPoint = GetRayIntersectionPoint(mPos, overlappingVertex, state);
+
+            if (intersectionPoint != null)
+            {
+                var previousEdge = polygon.Last();
+                polygon.Remove(previousEdge);
+                var backEdge = new Edge(previousEdge.start, intersectionPoint.Value);
+                var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                intersectionEdge.DebugDraw(Color.blue, 1);
+                polygon.Add(backEdge);
+                polygon.Add(intersectionEdge);
+            }
         }
 
         return polygon.Distinct().ToList();

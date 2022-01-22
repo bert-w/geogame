@@ -111,9 +111,18 @@ public class Edge : IEquatable<Edge>
         return true;
     }
 
+    public override bool Equals(object obj)
+    {
+        if (obj is Edge edge)
+        {
+            return (this.start == edge.start && this.end == edge.end) || (this.end == edge.start && this.start == edge.end);
+        }
+        throw new NotImplementedException();
+    }
+
     public bool Equals(Edge edge)
     {
-        return (this.start == edge.start) && (this.end == edge.end) || (this.end == edge.start) && (this.start == edge.end);
+        return (this.start == edge.start && this.end == edge.end) || (this.end == edge.start && this.start == edge.end);
     }
 }
 
