@@ -78,7 +78,9 @@ public class PlaceLightsController : MonoBehaviour
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
 
         // @ TODO calculate this by triangulation
-        challengePolygonArea = ChangePolToPol2D(challengePolygon).Area;
+        challengePolygonArea = challengePolygon.GetArea();
+        //Debug.Log("areas are the same: " + (ChangePolToPol2D(challengePolygon).Area == challengePolygon.GetArea()));
+        
         challengeFinished = false;
         coverPercentage = 0f;
     }
@@ -139,6 +141,8 @@ public class PlaceLightsController : MonoBehaviour
         {
             pol.Add(new PolygonVertex { x = (float)item.x, y = (float)item.y });
         }
+
+        pol.Triangulate();
 
         return pol;
     }
@@ -435,10 +439,18 @@ public class PlaceLightsController : MonoBehaviour
 
         contourPolygon = (ContourPolygon)unionSweepLine.Union(pol2dCol);
 
-        // something seems to go wrong here
+        float contourPolArea = 0f;
 
-        coverPercentage = contourPolygon.Area / challengePolygonArea;
+        foreach (var item in contourPolygon.Contours)
+        {
+            contourPolArea += ChangeContourToPol(item).GetArea();
+        }
 
+        //Debug.Log("vis area the same:" + (contourPolArea == contourPolygon.Area));
+
+        coverPercentage = contourPolArea / challengePolygonArea;
+        if (coverPercentage > 1f)
+            coverPercentage = 1f;
         percentageText.text = string.Format("{0:P2}", (coverPercentage));
 
 
