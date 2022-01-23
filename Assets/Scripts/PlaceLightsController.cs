@@ -32,6 +32,7 @@ public class PlaceLightsController : MonoBehaviour
     public Material mat;
     public float drawDuration = .2f;
 
+    public Button skipButton;
 
     public Color LineColor = Color.black;
 
@@ -67,6 +68,8 @@ public class PlaceLightsController : MonoBehaviour
     private void OnEnable()
     {
         isDrawing = false;
+
+        skipButton.interactable = true;
 
         mouseLight = CreateMouseLight("Mouse Light", Vector3.zero);
 
@@ -451,6 +454,33 @@ public class PlaceLightsController : MonoBehaviour
         Vector3 mPos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         mPos.z = 10;
         return mPos;
+    }
+
+    // if the player is stuck, this function is used to skip the level
+    public void SkipLevel()
+    {
+        foreach (Transform child in transform)
+        {
+            challengeFinished = true;
+            //if(child.gameObject.name != "Mouse Light")
+            Destroy(child.gameObject);
+        }
+        lights.Clear();
+        Destroy(challengePolygon.gameObject);
+        visibilityPolygonList.Clear();
+        visibilityPolygonLine.positionCount = 0;
+
+        gameEventController.enabled = true;
+
+        percentageText.text = "0%";
+        livePercentageText.text = "0%";
+
+        coverPercentage = 0f;
+
+        skipButton.interactable = false;
+
+        enabled = false;
+
     }
 
     public void SetValues(Polygon polygon)
