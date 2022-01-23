@@ -1,9 +1,5 @@
-# geogame
-In our game player 1 plays against player 2. One of the players draws a polygon, while the other player needs to place the least number of lights to light it up.
-We will use a radial sweep from each light to determine the visibility polygon. The Union of all visibility polygons decides whether the entire polygon is illuminated.
+# GeoGame
+We created a 2-player game in Unity where player 1 creates a challenge polygon for player 2 to illuminate with as few lights as possible. Scores for each round are awarded to the player that places the lights, using a simple equation "points = vertices / lights", motivating the user that draws the polygon to create a difficult challenge with as few vertices as possible. After each round, the roles are swapped. When a player reaches 10 points, the game ends. The players are also allowed to set a different target score.
 
-
-The source files are in this folder: https://github.com/bert-w/geogame/tree/master/Assets/Scripts
-Here we included a file with basic classes, like Vertex, Edge, Triangle etc.
-We also have a file which contains the class for the status and the queue for the radial sweep.
-Lastly we have the GameController.cs file which contains classes for performing the radial sweep and calculating the total visibility.
+# Demo
+https://bert-w.github.io/geogame/
