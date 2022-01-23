@@ -630,12 +630,19 @@ public class PlaceLightsController : MonoBehaviour
 
                     partialVisibleEdge = intersectionPoint;
                     var previousEdge = polygon.Last();
-                    polygon[polygon.Count - 1] = new Edge(previousEdge.start, intersectionPoint.Value);
-                    var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
-                    intersectionEdge.DebugDraw(Color.blue, 1);
-                    polygon.Add(intersectionEdge);
+                    polygon.Remove(previousEdge);
 
+                    DrawEdge(previousEdge.start, previousEdge.end, Color.white, width: 20);
+                    yield return new WaitForSeconds(drawDuration);
+
+
+                    var backEdge = new Edge(previousEdge.start, intersectionPoint.Value);
+                    var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
+                    polygon.Add(backEdge);
+                    polygon.Add(intersectionEdge);
+                    
                     DrawEdge(intersectionEdge.start, intersectionEdge.end, Color.gray, width: 20);
+                    DrawEdge(backEdge.start, backEdge.end, Color.gray, width: 20);
                     yield return new WaitForSeconds(drawDuration);
                    
                 }
@@ -662,6 +669,7 @@ public class PlaceLightsController : MonoBehaviour
                     if (minItem != null)
                     {
                         partialVisibleEdge = intersectionPoint;
+                        previousEmittedEdge = minItem.Edge;
                         var intersectionEdge = new Edge(overlappingVertex, intersectionPoint.Value);
                         var backEdge = new Edge(intersectionPoint.Value, minItem.Edge.end);
                         intersectionEdge.DebugDraw(Color.green, 1);
@@ -669,7 +677,7 @@ public class PlaceLightsController : MonoBehaviour
                         polygon.Add(backEdge);
 
                         DrawEdge(intersectionEdge.start, intersectionEdge.end, Color.gray, width: 20);
-                        yield return new WaitForSeconds(drawDuration);
+                        //yield return new WaitForSeconds(drawDuration);
                         DrawEdge(backEdge.start, backEdge.end, Color.gray, width: 20);
                         yield return new WaitForSeconds(drawDuration);
                     }
@@ -697,7 +705,7 @@ public class PlaceLightsController : MonoBehaviour
 
             var minEvent = state.FindMin();
 
-            if (minEvent != null)
+            if (minEvent != null && minEvent.Edge != previousEmittedEdge)
             {
                 polygon.Add(minEvent.Edge);
                 previousEmittedEdge = minEvent.Edge;
@@ -707,10 +715,6 @@ public class PlaceLightsController : MonoBehaviour
             }
         }
 
-        foreach (var item in polygon.Distinct())
-        {
-            item.DebugDraw();
-        }
 
         isDrawing = false;
 
