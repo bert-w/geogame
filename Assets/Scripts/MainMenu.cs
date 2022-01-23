@@ -12,6 +12,7 @@ public class MainMenu : MonoBehaviour
     public GameObject howToMenu;
 
     public Toggle geomExplanations;
+    public InputField scoreToWin;
 
 
     public void PlayGame()
@@ -36,6 +37,11 @@ public class MainMenu : MonoBehaviour
     {
         PlayerScore.explanations = geomExplanations.isOn;
      
+    }
+
+    public void SetWinScore()
+    {
+        PlayerScore.scoreToWin = int.Parse(scoreToWin.text);
     }
 
 
